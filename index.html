@@ -1,0 +1,82 @@
+<!doctype html>
+<!-- The Time Machine GitHub pages theme was designed and developed by Jon Rohan, on Feb 7, 2012. -->
+<!-- Follow him for fun. http://twitter.com/jonrohan. Tail his code on http://github.com/jonrohan -->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <link rel="stylesheet" href="stylesheets/stylesheet.css" media="screen"/>
+  <link rel="stylesheet" href="stylesheets/pygment_trac.css"/>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script type="text/javascript" src="javascripts/script.js"></script>
+
+  <title>Concordia</title>
+  <meta name="description" content="Concordia is a JSON schema language.">
+
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+</head>
+
+<body>
+
+  <div class="wrapper">
+    <header>
+      <h1 class="title">Concordia</h1>
+    </header>
+    <div id="container">
+      <p class="tagline">Concordia is a JSON schema language.</p>
+      <div id="main" role="main">
+        <div class="download-bar">
+        <div class="inner">
+          <a href="https://github.com/cens/Concordia/tarball/master" class="download-button tar"><span>Download</span></a>
+          <a href="https://github.com/cens/Concordia/zipball/master" class="download-button zip"><span>Download</span></a>
+          <a href="https://github.com/cens/Concordia" class="code">View Concordia on GitHub</a>
+        </div>
+        <span class="blc"></span><span class="trc"></span>
+        </div>
+        <article class="markdown-body">
+          <p>Welcome to Concordia!</p>
+
+<h1>What is it?</h1>
+
+<p>Concordia is a JSON schema language. It only defines form but not function. In other words, it describes the types and subtypes of a JSON payload (form) but not the contents of the payload (function).</p>
+
+<p>This is an important distinction; including function would be an overzealous undertaking and completely unnecessary as it is entirely application dependent. Form will provide consumers with syntactic validation, which will allow them to safely query the JSON data once it has been validated. Function is the semantic layer and is unique to each use-case.</p>
+
+<p>However, it is highly encouraged that users extend this definition to include their own semantics, if desired. For example, a "number" type is defined in this specification with no other fields, but it could be extended to allow for "min" and/or "max" fields that determine the minimum and/or maximum allowed values for this field. Then, the data validation could easily be extended to look for and guarantee that the data falls within this range.</p>
+
+<p>A Concordia schema may have as many additional fields as desired. Therefore, while the data may have very specific components for one application, it can still be understood and used by other applications that understand Concordia. Likewise, the data may have as many additional fields as desired, and it will still be considered valid as long as the defined fields are valid.</p>
+
+<h1>Who would use it?</h1>
+
+<p>JSON is a widely used data format for communication between two nodes. When the format of the data is know apriori, then there are more efficient technologies, such as ProtocolBuffers. However, when the communication between the two nodes is not so tightly coupled, e.g. in research or startup environments when the format can rapidly evolve or when providing a public interface for a web service, it can be highly advantageous to publish a schema that defines that payload.</p>
+
+<p>For example, a startup creates a new web service with two APIs that allow users to upload and download data, respectively. If a Concordia schema was published for the upload API, it would allow user applications that are generating data to validate that data before attempting to upload. This allows remote devices to save power and time by validating points itself and handling invalid ones before wasting networking resources. That same schema can be used on the server-side to, again, validate the data before consumption. The read API would publish its own schema that defines all possible forms of the data. Consumers can pass that schema to a code generation tool to create language-specific representations of the data.</p>
+
+<h1>How do I get started?</h1>
+
+<p>First, check out the specification. There is a <a href="https://github.com/cens/Concordia/wiki/Schema-Definition">Schema Definition</a>, which defines the schema in a BNF form, and there is a <a href="https://github.com/cens/Concordia/wiki/Schema-Image">Schema Image</a>, which is a more graphical representation of the definition. Also, there is an <a href="https://github.com/cens/Concordia/wiki/Examples">Examples</a> page that gives a walkthrough of how to build Concordia schemas. Finally, check out the code and/or use the libraries and let us know what you think!</p>
+        </article>
+      </div>
+    </div>
+    <footer>
+      <div class="owner">
+      <p><a href="https://github.com/cens" class="avatar"><img src="https://secure.gravatar.com/avatar/7ad4a30f763aaeef748cec9cbd532bee?s=30&amp;d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" width="48" height="48"/></a> <a href="https://github.com/cens">cens</a> maintains <a href="https://github.com/cens/Concordia">Concordia</a></p>
+
+
+      </div>
+      <div class="creds">
+        <small>This page generated using <a href="https://pages.github.com/">GitHub Pages</a><br/>theme by <a href="http://twitter.com/jonrohan/">Jon Rohan</a></small>
+      </div>
+    </footer>
+  </div>
+  <div class="current-section">
+    <a href="#top">Scroll to top</a>
+    <a href="https://github.com/cens/Concordia/tarball/master" class="tar">tar</a><a href="https://github.com/cens/Concordia/zipball/master" class="zip">zip</a><a href="" class="code">source code</a>
+    <p class="name"></p>
+  </div>
+
+  
+</body>
+</html>
