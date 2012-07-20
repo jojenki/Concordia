@@ -9,7 +9,7 @@
  * 
  * @author John Jenkins
  */
-function Concorida(schema) {
+function Concordia(schema) {
 	var Concordia = {};
 	
 	(function () {
