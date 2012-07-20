@@ -372,6 +372,9 @@ function Concordia(schema) {
 				if(! schema["optional"]) {
 					throw "The data is not optional.";
 				}
+				else {
+					return;
+				}
 			}
 			// Ensure that it is an object.
 			if((typeof data !== "object") || (data instanceof Array)) {
