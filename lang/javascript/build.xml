@@ -1,0 +1,67 @@
+<project name="Concorida" basedir="." default="dist">
+	<!-- Rhino unit tester for JavaScript. -->
+    <scriptdef
+            name="rhinounit"
+            src="lib/rhinounit/rhinoUnitAnt.js"
+            language="javascript">
+        <attribute name="options"/>
+        <attribute name="ignoredglobalvars"/>
+        <attribute name="haltOnFirstFailure"/>
+        <attribute name="rhinoUnitUtilPath"/>
+        <element name="fileset" type="fileset"/>
+    </scriptdef>
+    
+	<!-- LINT to ensure that the JavaScript applies best-practices. -->
+    <scriptdef
+            name="jslintant"
+            src="lib/jslint/jslintant.js"
+            language="javascript">
+        <attribute name="options" />
+        <element name="fileset" type="fileset" />
+    </scriptdef>
+	
+	<!-- Minifier task to minify the JavaScript source. -->
+	<taskdef name="jsmin"
+	         classname="net.matthaynes.jsmin.JSMin_Task"
+	         classpath="lib/jsmin/jsmin.0.2.4.jar" />
+    
+	<!-- Target to test the code. -->
+    <target name="test">
+        <rhinounit
+        	    options="{verbose:true, stackTrace:true}"
+        	    haltOnFirstFailure="true"
+        	    rhinounitutilpath="lib/rhinounit/rhinoUnitUtil.js">
+            <fileset dir="test">
+                <include name="*.js"/>
+            </fileset>
+        </rhinounit>
+    </target>
+    
+	<!-- Target to run the LINT checker. -->
+    <target name="lint">
+        <jslintant
+        	    options="{eqeqeq : false, white: true, plusplus : false, bitwise : true, passfail: false, browser: true, evil: true, forin: true, newprimitive: true}">
+            <fileset dir="src">
+                <include name="**/*.js"/>
+            </fileset>
+        </jslintant>
+    </target>
+    
+	<!-- Target to create a tested, distributable copy of Concordia. -->
+	<!-- Lint is currently being disabled as the LINT checker is throwing an
+	     exception that I don't have time to debug. -->
+    <target name="dist" depends="test">
+    	<mkdir dir="dist" />
+    	<copy toDir="dist">
+    		<fileset dir="src" includes="**" />
+    	</copy>
+    </target>
+	
+	<!-- Target that runs the dist script and then minifies the code. -->
+	<target name="dist-min" depends="dist">
+        <jsmin destdir="dist" force="true">
+            <!-- TODO: Add a copyright. -->
+            <fileset dir="src" includes="**/*.js" />
+        </jsmin>
+	</target>
+</project>

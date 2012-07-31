@@ -1,0 +1,9 @@
+{
+    "type":"object",
+    "schema":[
+        {
+            "name":"boolean",
+            "type":"boolean"
+        }
+    ]
+}
