@@ -12,6 +12,30 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 
 /* Generally useful utils */
+
+/* FIXME: This was moved here to fix a bug. This should probably be removed. */
+/* Very Rhino specific way of getting the stack trace so we know where the error happened */
+function getStackTraceFromRhinoException(exception) {
+	var outputStream = new java.io.ByteArrayOutputStream();
+	var printStream = new java.io.PrintStream(outputStream);
+	exception.printStackTrace(printStream);
+	return outputStream.toString();
+}
+
+function extractScriptStackTraceFromFullStackTrace(trace, ignoreAfterMatching) {
+	var result = [];
+	var lines = trace.split("[\n\r\f]");
+	for (var i = 0; i < lines.length; i++) {
+		if (/at script/.test(lines[i]) && ! /callStack/.test(lines[i])) {
+			result.push(lines[i]);
+			if (ignoreAfterMatching && ignoreAfterMatching.test(lines[i])) {
+				break;
+			}
+		}
+	}
+	return result.join("\n");
+}
+
 function getFunctionNameFor(theFunction) {
 	return /function (.*)\(/.exec("" + theFunction)[1];
 }

@@ -1,0 +1,28 @@
+{
+    "type":"object",
+    "schema":[
+        {
+            "name":"const_length_array",
+            "type":"array",
+            "schema":[
+                {
+                    "type":"boolean"
+                },
+                {
+                    "type":"number"
+                },
+                {
+                    "type":"string"
+                },
+                {
+                    "type":"object",
+                    "schema":[]
+                },
+                {
+                    "type":"array",
+                    "schema":[]
+                }
+            ]
+        }
+    ]
+}

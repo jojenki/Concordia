@@ -1,4 +1,6 @@
-<project name="Concorida" basedir="." default="dist">
+<?xml version="1.0"?>
+<!-- The build file for the JavaScript version of Concordia. -->
+<project name="ConcoridaJS" basedir="." default="dist">
 	<!-- Rhino unit tester for JavaScript. -->
     <scriptdef
             name="rhinounit"
@@ -16,6 +18,7 @@
             name="jslintant"
             src="lib/jslint/jslintant.js"
             language="javascript">
+    	<attribute name="jslintpath" />
         <attribute name="options" />
         <element name="fileset" type="fileset" />
     </scriptdef>
@@ -27,6 +30,10 @@
     
 	<!-- Target to test the code. -->
     <target name="test">
+        <echo message="----------------------------------------" />
+        <echo message="- Testing the JavaScript Module        -" />
+        <echo message="----------------------------------------" />
+    	
         <rhinounit
         	    options="{verbose:true, stackTrace:true}"
         	    haltOnFirstFailure="true"
@@ -39,8 +46,9 @@
     
 	<!-- Target to run the LINT checker. -->
     <target name="lint">
-        <jslintant
-        	    options="{eqeqeq : false, white: true, plusplus : false, bitwise : true, passfail: false, browser: true, evil: true, forin: true, newprimitive: true}">
+        <jslintant 
+                jslintpath="lib/jslint/fulljslint.js"
+        	    options="{eqeqeq : true, white : true, passfail : false}">
             <fileset dir="src">
                 <include name="**/*.js"/>
             </fileset>
@@ -48,9 +56,13 @@
     </target>
     
 	<!-- Target to create a tested, distributable copy of Concordia. -->
-	<!-- Lint is currently being disabled as the LINT checker is throwing an
-	     exception that I don't have time to debug. -->
+	<!-- TODO: Lint is currently being disabled as the LINT checker is throwing
+	     an exception that I don't have time to debug. -->
     <target name="dist" depends="test">
+        <echo message="----------------------------------------" />
+    	<echo message="- Building the JavaScript Module       -" />
+        <echo message="----------------------------------------" />
+    	
     	<mkdir dir="dist" />
     	<copy toDir="dist">
     		<fileset dir="src" includes="**" />
@@ -63,5 +75,14 @@
             <!-- TODO: Add a copyright. -->
             <fileset dir="src" includes="**/*.js" />
         </jsmin>
+	</target>
+	
+	<!-- Cleans everything by deleting the "dist" folder. -->
+	<target name="clean">
+        <echo message="----------------------------------------" />
+        <echo message="- Cleaning the JavaScript Module       -" />
+        <echo message="----------------------------------------" />
+
+		<delete dir="dist" />
 	</target>
 </project>

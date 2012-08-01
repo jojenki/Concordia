@@ -17,7 +17,7 @@ var jsfile;
 var fulljslint;
 var lintfailed = false;
 // read fulljslint and eval it into this script.
-var jsLintPath = "test/jslint/fulljslint.js";
+var jsLintPath = "src/fulljslint.js";
 if (attributes.get("jslintpath")) {
 	jsLintPath = attributes.get("jslintpath");
 }

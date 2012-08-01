@@ -1,0 +1,9 @@
+{
+    "const_type_array_number":[
+        0,
+        1,
+        -1,
+        1e1,
+        "Hello, world!"
+    ]
+}

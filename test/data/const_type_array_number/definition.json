@@ -1,0 +1,12 @@
+{
+    "type":"object",
+    "schema":[
+        {
+            "name":"const_type_array_number",
+            "type":"array",
+            "schema":{
+                "type":"number"
+            }
+        }
+    ]
+}

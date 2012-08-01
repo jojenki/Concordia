@@ -1,0 +1,12 @@
+{
+    "type":"object",
+    "schema":[
+        {
+            "name":"const_type_array_boolean",
+            "type":"array",
+            "schema":{
+                "type":"boolean"
+            }
+        }
+    ]
+}

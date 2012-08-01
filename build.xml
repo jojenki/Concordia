@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!-- The root build file for Concordia. -->
+<project name="Concordia" basedir="." default="dist">
+	<!-- Builds all of the sub-projects. -->
+	<target name="dist">
+		<!-- Echo that all of the sub-projects are being built. -->
+        <echo message="----------------------------------------" />
+        <echo message="- Building the Sub-Projects            -" />
+        <echo message="----------------------------------------" />
+		
+		<!-- Create the "dist" folder where the results of sub-"dist" folders 
+		     will be aggregated. -->
+		<mkdir dir="dist" />
+		
+		<!-- Run the build for all of the sub-folders. -->
+		<subant>
+			<fileset dir="lang" includes="*/build.xml" />
+		</subant>
+		
+		<!-- Copy the results in all of the "dist" folders into the root "dist"
+		     folder. -->
+		<copy todir="dist">
+			<fileset dir="lang" includes="*/dist/**" />
+		</copy>
+	</target>
+	
+	<!-- Cleans the root and all sub-projects. -->
+	<target name="clean">
+        <echo message="----------------------------------------" />
+        <echo message="- Cleaning the Sub-Projects            -" />
+        <echo message="----------------------------------------" />
+		
+		<!-- Run the clean for all of the sub-folders. -->
+        <subant target="clean">
+            <fileset dir="lang" includes="*/build.xml" />
+        </subant>
+	</target>
+</project>
