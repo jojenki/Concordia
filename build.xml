@@ -27,6 +27,12 @@
 	<!-- Cleans the root and all sub-projects. -->
 	<target name="clean">
         <echo message="----------------------------------------" />
+        <echo message="- Cleaning the Root                    -" />
+        <echo message="----------------------------------------" />
+		
+		<delete dir="dist" />
+		
+        <echo message="----------------------------------------" />
         <echo message="- Cleaning the Sub-Projects            -" />
         <echo message="----------------------------------------" />
 		
