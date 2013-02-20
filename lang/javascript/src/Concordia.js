@@ -52,7 +52,7 @@ function Concordia(schema) {
 		
 		/**
 		 * Validates that the data is a boolean or, if it is 'null' or missing,
-		 * that hte field is optional.
+		 * that the field is optional.
 		 * 
 		 * @param schema The Schema to use to validate the data.
 		 * 
@@ -68,8 +68,7 @@ function Concordia(schema) {
 			}
 			// If the data is present, ensure that it is a boolean.
 			else if (Object.prototype.toString.call(data) !== JS_TYPE_BOOLEAN) {
-				throw "The value is not a boolean: " +
-						JSON.stringify(data, null, null);
+				throw "The value is not a boolean: " + JSON.stringify(data);
 			}
 		}
 		
@@ -101,8 +100,7 @@ function Concordia(schema) {
 			}
 			// If the data is present, ensure that it is a number.
 			else if (Object.prototype.toString.call(data) !== JS_TYPE_NUMBER) {
-				throw "The value is not a number: " + 
-						JSON.stringify(data, null, null);
+				throw "The value is not a number: " + JSON.stringify(data);
 			}
 		}
 		
@@ -130,8 +128,7 @@ function Concordia(schema) {
 			}
 			// If the data is present, ensure that it is a string.
 			else if (Object.prototype.toString.call(data) !== JS_TYPE_STRING) {
-				throw "The data is not a string: " + 
-						JSON.stringify(data, null, null);
+				throw "The data is not a string: " + JSON.stringify(data);
 			}
 		}
 		
@@ -155,20 +152,24 @@ function Concordia(schema) {
 		    
 		    // Verify the schema isn't null.
 		    if (schema === null) {
-		        throw "The '" + KEYWORD_SCHEMA + "' field's value is null: " + 
-		        		JSON.stringify(obj, null, null);
+		        throw "The '" + 
+		        		KEYWORD_SCHEMA + 
+		        		"' field's value is null: " + 
+		        		JSON.stringify(obj);
 		    }
 		    // Verify that the schema is present and is a JSON array.
 		    schemaType = typeof schema;
 		    if (schemaType === "undefined") {
-		        throw "The '" + KEYWORD_SCHEMA + "' field is missing: " + 
-		        		JSON.stringify(obj, null, null);
+		        throw "The '" + 
+		        		KEYWORD_SCHEMA + 
+		        		"' field is missing: " + 
+		        		JSON.stringify(obj);
 		    }
 		    if (Object.prototype.toString.call(schema) !== JS_TYPE_ARRAY) {
 		        throw "The '" +
 		        		KEYWORD_SCHEMA +
 		        		"' field's value must be a JSON array: " + 
-		        		JSON.stringify(obj, null, null);
+		        		JSON.stringify(obj);
 		    }
 		    
 		    // For each of the JSON objects, verify that it has a name and a
@@ -182,7 +183,7 @@ function Concordia(schema) {
 		            		" of the '" +
 		            		KEYWORD_SCHEMA +
 		            		"' field is null: " + 
-		            		JSON.stringify(obj, null, null);
+		            		JSON.stringify(obj);
 		        }
 		        // Verify that the index is a JSON object and not an array.
 		        if (Object.prototype.toString.call(field) !== JS_TYPE_OBJECT) {
@@ -191,7 +192,7 @@ function Concordia(schema) {
 		            		" of the '" +
 		            		KEYWORD_SCHEMA +
 		            		"' field is not a JSON object: " + 
-		            		JSON.stringify(obj, null, null);
+		            		JSON.stringify(obj);
 		        }
 		        
 		        // Verify that the JSON object contains a "name" field and that
@@ -203,7 +204,7 @@ function Concordia(schema) {
 		            		"' field for the JSON object at index " + 
 		            		i + 
 		            		" is null: " + 
-		            		JSON.stringify(obj, null, null);
+		            		JSON.stringify(obj);
 		        }
 		        // Verify that the "name" field exists and is a string.
 		        nameType = typeof name;
@@ -213,7 +214,7 @@ function Concordia(schema) {
 		        			"' field for the JSON object at index " + 
 		        			i + 
 		        			" is misisng: " + 
-		        			JSON.stringify(obj, null, null);
+		        			JSON.stringify(obj);
 		        }
 		        if (Object.prototype.toString.call(name) !== JS_TYPE_STRING) {
 		            throw "The type of the '" +
@@ -221,7 +222,7 @@ function Concordia(schema) {
 		            		"' field for the JSON object at index " + 
 		            		i + 
 		            		" is not a string: " + 
-		            		JSON.stringify(obj, null, null);
+		            		JSON.stringify(obj);
 		        }
 		        
 		        // Validates the type of this field.
@@ -258,8 +259,7 @@ function Concordia(schema) {
 			
 			// Ensure that it is an object.
 			if (Object.prototype.toString.call(data) !== JS_TYPE_OBJECT) {
-				throw "The data is not a JSON object: " + 
-						JSON.stringify(data, null, null);
+				throw "The data is not a JSON object: " + JSON.stringify(data);
 			}
 			
 			// For each index in the object's "schema" field,
@@ -281,7 +281,7 @@ function Concordia(schema) {
 						throw "The field '" +
 								name +
 								"' is missing from the data: " +
-								JSON.stringify(data, null, null);
+								JSON.stringify(data);
 					}
 				}
 				else {
@@ -318,7 +318,7 @@ function Concordia(schema) {
 		        throw "The '" +
 		        		KEYWORD_SCHEMA +
 		        		"' field's value cannot be null: " + 
-		        		JSON.stringify(obj, null, null);
+		        		JSON.stringify(obj);
 		    }
 		    // Validate that the schema exists and that it is an object, either 
 		    // a JSON object or a JSON array.
@@ -327,7 +327,7 @@ function Concordia(schema) {
 		        throw "The '" +
 		        		KEYWORD_SCHEMA +
 		        		"' field is missing: " + 
-		        		JSON.stringify(obj, null, null);
+		        		JSON.stringify(obj);
 		    }
 		    
 		    schemaJsType = Object.prototype.toString.call(schema);
@@ -349,7 +349,7 @@ function Concordia(schema) {
 		    	throw "The '" +
 		    			KEYWORD_SCHEMA +
 		    			"' field's type must be either an array or an object: " + 
-        				JSON.stringify(obj, null, null);
+        				JSON.stringify(obj);
 		    }
 		}
 		
@@ -381,7 +381,7 @@ function Concordia(schema) {
 			// Ensure it is an array.
 			if (Object.prototype.toString.call(data) !== JS_TYPE_ARRAY) {
 				throw "The data is not a JSON array: " + 
-						JSON.stringify(data, null, null);
+						JSON.stringify(data);
 			}
 			
 			// Get the schema.
@@ -418,7 +418,7 @@ function Concordia(schema) {
 		            throw "The element at index " + 
 		            		i + 
 		            		" is null: " + 
-		            		JSON.stringify(obj, null, null);
+		            		JSON.stringify(obj);
 		        }
 		        
 		        // If the index is not an object, throw an exception.
@@ -426,7 +426,7 @@ function Concordia(schema) {
 		            throw "The element at index " + 
 		            		i + 
 		            		"is not a JSON object: " + 
-		            		JSON.stringify(obj, null, null);
+		            		JSON.stringify(obj);
 		        }
 		        
 		        validateSchemaType(field);
@@ -452,7 +452,7 @@ function Concordia(schema) {
 			// with 'null's to match the schema's length.
 			if (schema.length !== dataArray.length) {
 				throw "The schema array and the data array are of different lengths: " +
-						JSON.stringify(dataArray, null, null);
+						JSON.stringify(dataArray);
 			}
 			
 			// For each schema in the schema array, ensure that the 
@@ -507,17 +507,23 @@ function Concordia(schema) {
 		      , typeType;
 		    
 		    if (type === null) {
-		    	throw "The '" + KEYWORD_TYPE + "' field cannot be null: " + 
-		    			JSON.stringify(obj, null, null);
+		    	throw "The '" + 
+		    			KEYWORD_TYPE + 
+		    			"' field cannot be null: " + 
+		    			JSON.stringify(obj);
 		    }
 		    typeType = typeof type;
 		    if (typeType === "undefined") {
-		    	throw "The '" + KEYWORD_TYPE + "' field is missing: " + 
-		    			JSON.stringify(obj, null, null);
+		    	throw "The '" + 
+		    			KEYWORD_TYPE + 
+		    			"' field is missing: " + 
+		    			JSON.stringify(obj);
 		    }
 		    if (Object.prototype.toString.call(type) !== JS_TYPE_STRING) {
-		    	throw "The '" + KEYWORD_TYPE + "' field is not a string: " + 
-    					JSON.stringify(obj, null, null);
+		    	throw "The '" + 
+		    			KEYWORD_TYPE + 
+		    			"' field is not a string: " + 
+    					JSON.stringify(obj);
 		    }
 		    
 		    if (type === TYPE_BOOLEAN) {
@@ -594,14 +600,14 @@ function Concordia(schema) {
 		    		(Object.prototype.toString.call(doc) !== JS_TYPE_STRING)) {
 		    	
 		        throw "The 'doc' field's value must be of type string: " + 
-		        		JSON.stringify(obj, null, null);
+		        		JSON.stringify(obj);
 		    }
 		    
 		    if ((optionalType !== "undefined") && 
 		    		(Object.prototype.toString.call(optional) !== JS_TYPE_BOOLEAN)) {
 		    	
 		        throw "The 'optional' field's value must be of type boolean: " + 
-		        		JSON.stringify(obj, null, null);
+		        		JSON.stringify(obj);
 		    }
 		}
 		
@@ -624,27 +630,27 @@ function Concordia(schema) {
 		    	throw "The root object's '" + 
 		    			KEYWORD_TYPE + 
 		    			"' field cannot be null: " + 
-		    			JSON.stringify(obj, null, null);
+		    			JSON.stringify(obj);
 		    }
 		    typeType = typeof type;
 		    if (typeType === "undefined") {
 		    	throw "The root object's '" +
 		    			KEYWORD_TYPE +
 		    			"' field is missing: " + 
-		    			JSON.stringify(obj, null, null);
+		    			JSON.stringify(obj);
 		    }
 		    if (Object.prototype.toString.call(type) !== JS_TYPE_STRING) {
 		    	throw "The root object's '" +
 		    			KEYWORD_TYPE +
 		    			"' field must be a string: " +
-		    			JSON.stringify(obj, null, null);
+		    			JSON.stringify(obj);
 		    }
 		    if ((type !== TYPE_OBJECT) && (type !== TYPE_ARRAY)) {
 		        throw "The root object's '" +
 		        		KEYWORD_TYPE +
 		        		"' field must either be " +
 		        		"'object' or 'array': " + 
-		        		JSON.stringify(obj, null, null);
+		        		JSON.stringify(obj);
 		    }
 		    
 		    if (optionalType !== "undefined") {
