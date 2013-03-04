@@ -1,3 +1,4 @@
 .project
 dist
 lang/*/dist
+.DS_Store

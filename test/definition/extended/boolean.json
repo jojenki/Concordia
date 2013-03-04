@@ -1,0 +1,10 @@
+{
+    "type":"object",
+    "schema":[
+        {
+        	"name":"test",
+            "type":"boolean",
+            "extra":0
+        }
+    ]
+}

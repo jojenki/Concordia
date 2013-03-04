@@ -1,0 +1,11 @@
+{
+    "type":"object",
+    "schema":[
+        {
+            "name":"test",
+            "type":"object",
+            "schema":[],
+            "extra":0
+        }
+    ]
+}

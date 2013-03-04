@@ -4,7 +4,7 @@ importClass(Packages.org.apache.tools.ant.util.FileUtils);
 importClass(java.io.FileReader);
 
 // Load JSON
-eval(loadFile("lib/json2/json2.js"))
+eval(loadFile("lib/json2/json2.js"));
 
 // Load Concordia.
 eval(loadFile("src/Concordia.js"));
@@ -31,7 +31,7 @@ function getFile(testFileString) {
 		self.fail("The test file is not a file: " + testFileString);
 	}
 	
-	// Get all of the files.
+	// Get the files.
 	return testFile;
 }
 
@@ -89,11 +89,14 @@ function getContents(file) {
 }
 
 /**
- * Validates that a set of invalid definitions fail validation.
+ * Validates that a set of definitions pass or fail validation based on what
+ * they are defined to do.
  * 
  * @param definitionDir The directory containing the definition files.
+ * 
+ * @param shouldPass Whether or not the definitions should pass validation.
  */
-function checkInvalidConcordiaDefinitions(definitionDir) {
+function checkDefinitions(definitionDir, shouldPass) {
 	// Get all of the files.
 	var files = getFiles(definitionDir);
 	for (var i = 0; i < files.length; i++) {
@@ -102,56 +105,21 @@ function checkInvalidConcordiaDefinitions(definitionDir) {
 
 		// Attempt to create a new instance of Concordia with the invalid
 		// definition.
-		var concordia = null;
+		var concordia;
 		try {
 			concordia = new Concordia(fileContents);
-		}
-		catch(e) {
-			// This is what is supposed to happen.
-		}
-		
-		if(concordia !== null) {
-			self.fail(
-				"An invalid definition passed validation: " + 
-					fileContents);
-		}
-	}
-}
-
-/**
- * Checks that a set of files, each with their own data, are valid or invalid,
- * based on the 'areValid' parameter, for the parameterized 'concordia' object.
- * 
- * @param concordia An existing Concordia object.
- * 
- * @param dataDirectoryString The string representing the directory which 
- * 							  contains the data files to be tested.
- * 
- * @param areValid Whether or not the files should or should not pass 
- * 				   validation.
- */
-function checkDataDefinitions(concordia, dataDirectoryString, areValid) {
-	// Get all of the files.
-	var files = getFiles(dataDirectoryString);
-	for (var i = 0; i < files.length; i++) {
-		// Get the file's contents.
-		var fileContents = getContents(files[i]);
-		
-		// Check the data against the definition.
-		try {
-			concordia.validateData(fileContents);
 			
-			if(! areValid) {
-				self.fail("Invalid data passed validation: " + fileContents);
+			if(! shouldPass) {
+				self.fail(
+					"An invalid definition passed validation: " +
+						fileContents);
 			}
 		}
 		catch(e) {
-			if(areValid) {
+			if(shouldPass) {
 				self.fail(
-					"Valid data failed validation:\n\n" + 
-						fileContents +
-						"\n\n" +
-						e);
+					"An valid definition failed validation: " + 
+						fileContents);
 			}
 		}
 	}
@@ -201,6 +169,207 @@ function checkData(definitionFileString, invalidDataDirString, validDataDirStrin
 	}
 }
 
+/**
+ * Checks that a set of files, each with their own data, are valid or invalid,
+ * based on the 'areValid' parameter, for the parameterized 'concordia' object.
+ * 
+ * @param concordia An existing Concordia object.
+ * 
+ * @param dataDirectoryString The string representing the directory which 
+ * 							  contains the data files to be tested.
+ * 
+ * @param shouldPass Whether or not the data in the files should or should not 
+ * 					 pass validation.
+ */
+function checkDataDefinitions(concordia, dataDirectoryString, shouldPass) {
+	// Get all of the files.
+	var files = getFiles(dataDirectoryString);
+	for (var i = 0; i < files.length; i++) {
+		// Get the file's contents.
+		var fileContents = getContents(files[i]);
+		
+		// Check the data against the definition.
+		try {
+			concordia.validateData(fileContents);
+			
+			if(! shouldPass) {
+				self.fail("Invalid data passed validation: " + fileContents);
+			}
+		}
+		catch(e) {
+			if(shouldPass) {
+				self.fail(
+					"Valid data failed validation:\n\n" + 
+						fileContents +
+						"\n\n" +
+						e);
+			}
+		}
+	}
+}
+
+/**
+ * The exception message that will be thrown when an extension's type checker
+ * is executed. It ends with a colon so that the actual type checker can ensure
+ * that the correct extension was performed.
+ */
+var EXTENSION_TYPE_SUCCESS = "Pass: Type Extension: ";
+/**
+ * The function that will be assigned as the type checker for all types. It
+ * will always thrown an exception which is the {@link #EXTENSION_TYPE_SUCCESS}
+ * text with the type of the given object appended.
+ * 
+ * @param obj The JSON representing the type being validated.
+ * 
+ * @throws EXTENSION_TYPE_SUCCESS {@link #EXTENSION_TYPE_SUCCESS} appended with
+ *         the type being validated.
+ */
+function typeExtension(obj) {
+	// Each definition should have an extra field, 'extra', which we should be
+	// able to extract.
+	var extra = obj['extra'];
+	
+	// Extra should not be null.
+	if(extra === null) {
+		self.fail("'extra' is null.");
+	}
+	// If it's not null, get its type.
+	var extraType = Object.prototype.toString.call(extra);
+	// If it's undefined, then it wasn't present, which is an error.
+	if(extraType === "undefined") {
+		self.fail("'extra' is missing.");
+	}
+	// If it's not a number, that is an error.
+	else if(extraType !== "[object Number]") {
+		self.fail("'extra' is not a number: " + extraType);
+	}
+	
+	// If everything succeeded, return the success message with this object's
+	// type.
+	throw EXTENSION_TYPE_SUCCESS + obj['type'];
+}
+
+/**
+ * After Concordia's definition has been extended, use this function with a
+ * definition for a specific type to guarantee that that type's extension
+ * function will be executed.
+ * 
+ * @param typeDefinitionFile
+ *        The definition file whose contents will be used to use to build a
+ *        Concordia object which should test a specific type's extension.
+ */
+function checkExtensionType(typeDefinitionFile, type) {
+	// There are multiple flows that will result in an error, so we use a flag
+	// that we check at the end to determine if it failed.
+	var pass = false;
+	
+	// Get the file's contents.
+	var fileContents = getContents(getFile(typeDefinitionFile));
+	
+	// Get the custom exception for this type.
+	var exceptionText = EXTENSION_TYPE_SUCCESS + type;
+	
+	// Create the Concordia object.
+	var concordia;
+	try {
+		concordia = new Concordia(fileContents);
+	}
+	// If it throws an exception and, if it's the exception we expect, set the
+	// test as passed.
+	catch(e) {
+		if(e.toString() === exceptionText) {
+			pass = true;
+		}
+	}
+	
+	// If the test did not pass, fail.
+	if(! pass) {
+		self.fail("The type did not execute its type extension code.");
+	}
+}
+
+/**
+ * The exception message that will be thrown when an extension's data checker
+ * is executed. It ends with a colon so that the actual data checker can ensure
+ * that the correct extension was performed.
+ */
+var EXTENSION_DATA_SUCCESS = "Pass: Data Extension: ";
+/**
+ * The function that will always be assigned as the data checker for all types.
+ * It will always thrown an exception with is the
+ * {@link #EXTENSION_DATA_SUCCESS} text with the type of the given object
+ * appended.
+ * 
+ * @param schema The schema being validated.
+ * 
+ * @param data The data to validate.
+ * 
+ * @throws EXTENSION_DATA_SUCCESS {@link #EXTENSION_DATA_SUCCESS} appended with
+ *         the type being validated.
+ */
+function dataExtension(schema, data) {
+	throw EXTENSION_DATA_SUCCESS + schema['type'];
+}
+
+/**
+ * After Concordia's definition has been extended, use this function with data
+ * for a specific type to guarantee that that type's extension function for the
+ * data will be executed.
+ * 
+ * @param typeDefinitionFile
+ *        The definition file whose data should be used to use to build a 
+ *        Concordia object which should test a
+ *        specific type's extension.
+ */
+function checkExtensionData(definitionFile, dataFile, type) {
+	// There are multiple flows that will result in an error, so we use a flag
+	// that we check at the end to determine if it failed.
+	var pass = false;
+	
+	// Get the definition.
+	var definitionFileContents = getContents(getFile(definitionFile));
+	
+	// Create the Concordia object.
+	var concordia = null;
+	try {
+		concordia = new Concordia(definitionFileContents);
+	}
+	// If it throws an exception and, if it's the exception we expect, set the
+	// test as passed.
+	catch(e) {
+		self.fail(
+			"A valid definition was deemed invalid: " +
+				e.toString() +
+				"\n" +
+				definitionFileContents);
+	}
+	
+	// Get the data.
+	var dataFileContents = getContents(getFile(dataFile));
+	
+	// Get the custom exception for this type.
+	var exceptionText = EXTENSION_DATA_SUCCESS + type;
+	
+	// Validate the data which should cause the custom validation code to run
+	// which should throw an exception.
+	try {
+		concordia.validateData(dataFileContents);
+	}
+	// If it throws an exception and, if it's the exception we expect, set the
+	// test as passed.
+	catch(e) {
+		if(e.toString() === exceptionText) {
+			pass = true;
+		}
+	}
+	
+	// If the test did not pass, fail.
+	if(! pass) {
+		self.fail(
+			"The type did not execute its data-checking extension code.");
+	}
+}
+
 // Create the test cases.
 testCases(
 	// RhinoUnit requires this but doesn't document what it is or does.
@@ -215,33 +384,45 @@ testCases(
 	
 	/**
 	 * Tests all invalid definitions. These definitions can be found in the
-	 * ${test/definition/*} directories.
+	 * ${test/definition/invalid/*} directories.
 	 */
 	function testInvalidDefinitions() {
 		// Check the definitions where the root object is not a JSON object.
-		checkInvalidConcordiaDefinitions("definition/root/");
+		checkDefinitions("definition/invalid/root/", false);
 
 		// Check the definitions where the type of the 'type' field is not a
 		// string.
-		checkInvalidConcordiaDefinitions("definition/type/");
+		checkDefinitions("definition/invalid/type/", false);
 		
 		// Check the definitions of objects.
-		checkInvalidConcordiaDefinitions("definition/object/");
+		checkDefinitions("definition/invalid/object/", false);
 		
 		// Check the definitions of arrays.
-		checkInvalidConcordiaDefinitions("definition/array/");
+		checkDefinitions("definition/invalid/array/", false);
 		
 		// Check the definitions of constant type arrays.
-		checkInvalidConcordiaDefinitions("definition/const_type_array/");
+		checkDefinitions("definition/invalid/const_type_array/", false);
 		
 		// Check the definitions of constant length arrays.
-		checkInvalidConcordiaDefinitions("definition/const_length_array/");
+		checkDefinitions("definition/invalid/const_length_array/", false);
 		
 		// Check the definitions of documentation, "doc", tags.
-		checkInvalidConcordiaDefinitions("definition/doc/");
+		checkDefinitions("definition/invalid/doc/", false);
 		
 		// Check the definitions of the "optional" tag.
-		checkInvalidConcordiaDefinitions("definition/doc/");
+		checkDefinitions("definition/invalid/doc/", false);
+	},
+	
+	/**
+	 * Tests basic, valid definitions to ensure that they pass.
+	 */
+	function testValidDefinitions() {
+		// Check that all of the valid definitions pass.
+		checkDefinitions("definition/valid/", true);
+		
+		// Check that all of the extended definitions pass despite having
+		// additional, unknown keys.
+		checkDefinitions("definition/extended/", true);
 	},
 	
 	/**
@@ -314,5 +495,85 @@ testCases(
 			"data/optional/definition.json",
 			null,
 			"data/optional/valid/");
+	},
+	
+	/**
+	 * Tests the extensions onto the type definitions. Types are allowed to
+	 * extend their definition. This will add those extended definitions and
+	 * then check to be sure they are run.
+	 */
+	function testValidDefinitionExtensions() {
+		// Extend the prototype to include a check for boolean extensions.
+		Concordia.prototype.validateSchemaExtensionBoolean = typeExtension;
+		checkExtensionType("definition/extended/boolean.json", "boolean");
+		delete Concordia.prototype.validateSchemaExtensionBoolean;
+		
+		// Extend the prototype to include a check for number extensions.
+		Concordia.prototype.validateSchemaExtensionNumber = typeExtension;
+		checkExtensionType("definition/extended/number.json", "number");
+		delete Concordia.prototype.validateSchemaExtensionNumber;
+		
+		// Extend the prototype to include a check for string extensions.
+		Concordia.prototype.validateSchemaExtensionString = typeExtension;
+		checkExtensionType("definition/extended/string.json", "string");
+		delete Concordia.prototype.validateSchemaExtensionString;
+		
+		// Extend the prototype to include a check for object extensions.
+		Concordia.prototype.validateSchemaExtensionObject = typeExtension;
+		checkExtensionType("definition/extended/object.json", "object");
+		delete Concordia.prototype.validateSchemaExtensionObject;
+		
+		// Extend the prototype to include a check for array extensions.
+		Concordia.prototype.validateSchemaExtensionArray = typeExtension;
+		checkExtensionType("definition/extended/array.json", "array");
+		delete Concordia.prototype.validateSchemaExtensionArray;
+	},
+	
+	/**
+	 * Tests the extensions onto the data. Concordia may be extended to include
+	 * additional validation of data, generally this is associated with 
+	 * extending type definitions. This will only add the data-checking
+	 * extensions and not the type-checking extensions.
+	 */
+	function testValidDataExtensions() {
+		// Extend the prototype to include a data check for boolean data.
+		Concordia.prototype.validateDataExtensionBoolean = dataExtension;
+		checkExtensionData(
+			"definition/extended/boolean.json",
+			"data/extended/boolean.json",
+			"boolean");
+		delete Concordia.prototype.validateDataExtensionBoolean;
+
+		// Extend the prototype to include a data check for number data.
+		Concordia.prototype.validateDataExtensionNumber = dataExtension;
+		checkExtensionData(
+			"definition/extended/number.json",
+			"data/extended/number.json",
+			"number");
+		delete Concordia.prototype.validateDataExtensionNumber;
+
+		// Extend the prototype to include a data check for number data.
+		Concordia.prototype.validateDataExtensionString = dataExtension;
+		checkExtensionData(
+			"definition/extended/string.json",
+			"data/extended/string.json",
+			"string");
+		delete Concordia.prototype.validateDataExtensionString;
+
+		// Extend the prototype to include a data check for object data.
+		Concordia.prototype.validateDataExtensionObject = dataExtension;
+		checkExtensionData(
+			"definition/extended/object.json",
+			"data/extended/object.json",
+			"object");
+		delete Concordia.prototype.validateDataExtensionObject;
+
+		// Extend the prototype to include a data check for array data.
+		Concordia.prototype.validateDataExtensionArray = dataExtension;
+		checkExtensionData(
+			"definition/extended/array.json",
+			"data/extended/array.json",
+			"array");
+		delete Concordia.prototype.validateDataExtensionArray;
 	}
 );

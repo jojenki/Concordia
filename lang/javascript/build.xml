@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!-- The build file for the JavaScript version of Concordia. -->
-<project name="ConcoridaJS" basedir="." default="dist">
+<project name="ConcoridaJS" basedir="." default="dist-min">
 	<!-- Rhino unit tester for JavaScript. -->
     <scriptdef
             name="rhinounit"
@@ -70,10 +70,10 @@
     </target>
 	
 	<!-- Target that runs the dist script and then minifies the code. -->
-	<target name="dist-min" depends="dist">
-        <jsmin destdir="dist" force="true">
-            <!-- TODO: Add a copyright. -->
-            <fileset dir="src" includes="**/*.js" />
+	<target name="dist-min">
+		<antcall target="dist" />
+        <jsmin destdir="dist" force="true" suffix="true">
+            <fileset dir="dist" includes="**/*.js" />
         </jsmin>
 	</target>
 	

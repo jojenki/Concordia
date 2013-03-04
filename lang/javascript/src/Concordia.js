@@ -1,17 +1,199 @@
 /**
- * The Concordia object has one constructor which takes a schema and validates
- * it. If it fails validation, an exception will be thrown.
+ * TODO: Add a copyright.
+ */
+
+/**
+ * <p>A Concordia object has one constructor which takes a schema and validates
+ * it. If it fails validation, an exception will be thrown.</p>
  * 
- * There is one public function, which is validateData(data). 'data' must be a
- * JSON object or a JSON array or a string representing one of the two. If the
- * data is not valid, an exception will be thrown; otherwise, the function will 
- * return the valid JSON object or JSON array.
+ * <p>There is one public function, which is validateData(data). 'data' must be
+ * a JSON object or a JSON array or a string representing one of the two. If
+ * the data is not valid, an exception will be thrown; otherwise, the function 
+ * will return the valid JSON object or JSON array.</p>
+ * 
+ * <p>An example example definition would be:</p>
+ * 
+ * <code>
+ * {
+ *     "type":"object",
+ *     "doc":"Valid data for this definition must be an object.",
+ *     "schema":[
+ *         {
+ *             "name":"myNumber",
+ *             "type":"number",
+ *             "doc":"This object has one field whose key is \"myNumber\" and
+ *                    whose value must be a valid JSON number type."
+ *         }
+ *     ]
+ * }
+ * </code>
+ * 
+ * <p>Definitions and their data can be extended through a
+ * validateSchemaExtension{TYPE} function. For example, to add a custom
+ * extension to the number type, you would first create the custom validation
+ * function. This function will get one parameter which is the JSON object that
+ * is part of the definition defining this type, e.g.</p>
+ * 
+ * <code>
+ * {
+ *     "type":"octalDigit",
+ *     "doc":"A single octal digit."
+ *     "min":0,
+ *     "max":7
+ * }
+ * </code>
+ * 
+ * <p>Then, the custom code that would enforce this extension may look like:
+ * </p>
+ * 
+ * <code>
+ * function customNumberTypeExtension(obj) {
+ *     var min = obj['min'];
+ *     if ((min === null) ||
+ *         (Object.prototype.toString.call(min) !== "undefined")) {
+ *         
+ *         throw "The 'min' value is missing.";
+ *     }
+ *     else if(Object.prototype.toString.call(min) !== "[object Number]") {
+ *         throw "The 'min' value is not a number.";
+ *     }
+ *     
+ *     var max = obj['max'];
+ *     if ((max === null) ||
+ *         (Object.prototype.toString.call(max) === "undefined")) {
+ *         
+ *         throw "The 'max' value is missing.";
+ *     }
+ *     else if(Object.prototype.toString.call(max) !== "[object Number]") {
+ *         throw "The 'max' value is not a number.";
+ *     }
+ * }
+ * </code>
+ * 
+ * <p>Finally, this function is added to the Concordia prototype to ensure that
+ * it will be executed when new Concordia objects are created.</p>
+ * 
+ * <code>
+ * Concordia.prototype.validateSchemaExtensionNumber = 
+ *     customNumberTypeExtension;
+ * </code>
+ * 
+ * <p>Extensions can always been cleaned up by deleting them, e.g.</p>
+ * 
+ * <code>
+ * delete Concordia.prototype.validateSchemaExtensionNumber;
+ * </code>
+ * 
+ * <p>Additionally, custom validators for the data may be added in a similar
+ * way. Continuing the example above, a valid data point may look like:</p>
+ * 
+ * <code>
+ * {
+ *     "octalDigit":3
+ * }
+ * </code>
+ * 
+ * <p>The custom code that would be run when the data was being validated is
+ * named similarly, validateDataExtension{TYPE}. The custom function will take
+ * two arguments, the first is the part of the schema that corresponds to this
+ * piece of the data and the second is the specific portion of the data to be
+ * evaluated.</p>
+ * 
+ * <p>For example, given the following schema:</p>
+ * 
+ * <code>
+ * {
+ *     "type":"object",
+ *     "doc":"An object with two fields, a number and a string.",
+ *     "schema":[
+ *         {
+ *             "name":"myNumber",
+ *             "type":"number",
+ *             "doc":"A number field."
+ *         },
+ *         {
+ *             "name":"myString",
+ *             "type":"string",
+ *             "doc":"A string field."
+ *         }
+ *     ]
+ * }
+ * </code>
+ * 
+ * <p>And the following data point:</p>
+ * 
+ * <code>
+ * {
+ *     "myNumber":9,
+ *     "myString":"foo"
+ * }
+ * </code>
+ * 
+ * <p>The following function which extends the data validation for number types
+ * would receive the parameters:</p>
+ * 
+ * <h6>schema</h6>
+ * <code>
+ * {
+ *     "name":"myNumber",
+ *     "type":"number",
+ *     "doc":"A number field."
+ * }
+ * </code>
+ * 
+ * <h6>data</h6>
+ * <code>
+ * 9
+ * </code>
+ * 
+ * <h6>Code</h6>
+ * 
+ * <code>
+ * function customNumberDataExtension(schema, data) {
+ *     // Because the schema is stored within the object it should never be
+ *     // modified, so it can safely be assumed that the 'min' and 'max' fields
+ *     // that were validated during schema validation will still be present.
+ *     var min = schema['min'];
+ *     var max = schema['max'];
+ *     
+ *     // Because the type of the data has already been validated, it can
+ *     // safely be assumed that the data is at least of the valid type.
+ *     // NOTE: If the field is marked as 'optional', this value may be 'null'
+ *     // or 'undefined', which must be checked.
+ *     var value = data['octalDigit'];
+ *     
+ *     // Now, the business logic of this validation ensures that the value is
+ *     // valid.
+ *     if(value < min) {
+ *         throw "The data is invalid because its value is less than the " +
+ *                 'min' (" +
+ *                 min +
+ *                 "): " +
+ *                 data;
+ *     }
+ *     if(value > max) {
+ *         throw "The data is invalid because its value is greater than the " +
+ *                 'max' (" +
+ *                 max +
+ *                 "): " +
+ *                 data;
+ *     }
+ * }
+ * </code>
+ * 
+ * <p>And, to add it to Concordia:</p>
+ * 
+ * <code>
+ * Concordia.prototype.validateDataExtensionNumber = customNumberDataExtension;
+ * </code>
  * 
  * @author John Jenkins
  */
 function Concordia(schema) {
 	'use strict';
 	
+	// An anonymous function is used to create the internals of the class and
+	// prevent those functions and data from being exposed.
 	(function (concordia) {
 		// Concordia key words.
 		var KEYWORD_TYPE = "type"
@@ -32,7 +214,8 @@ function Concordia(schema) {
 		  , JS_TYPE_NUMBER = "[object Number]"
 		  , JS_TYPE_STRING = "[object String]"
 		  , JS_TYPE_OBJECT = "[object Object]"
-		  , JS_TYPE_ARRAY = "[object Array]";
+		  , JS_TYPE_ARRAY = "[object Array]"
+		  , JS_TYPE_FUNCTION = "[object Function]";
 		
 		// Predefine the recursive functions to allow them to be referenced
 		// before they are defined.
@@ -47,7 +230,12 @@ function Concordia(schema) {
 		 * @param obj The JSON object to validate.
 		 */
 		function validateSchemaBooleanType(obj) {
-			// There are no additional requirements for a boolean type.
+			// Check if any additional properties were added to this type.
+			if ((typeof Concordia.prototype.validateSchemaExtensionBoolean !== "undefined") &&
+				(Object.prototype.toString.call(Concordia.prototype.validateSchemaExtensionBoolean) == JS_TYPE_FUNCTION)) {
+				
+				Concordia.prototype.validateSchemaExtensionBoolean(obj);
+			}
 		}
 		
 		/**
@@ -70,6 +258,14 @@ function Concordia(schema) {
 			else if (Object.prototype.toString.call(data) !== JS_TYPE_BOOLEAN) {
 				throw "The value is not a boolean: " + JSON.stringify(data);
 			}
+			
+			// Check if custom validation code is present.
+			if ((typeof Concordia.prototype.validateDataExtensionBoolean !== "undefined") &&
+				(Object.prototype.toString.call(Concordia.prototype.validateDataExtensionBoolean) == JS_TYPE_FUNCTION)) {
+				
+				Concordia
+				    .prototype.validateDataExtensionBoolean(schema, data);
+			}
 		}
 		
 		/**
@@ -79,7 +275,12 @@ function Concordia(schema) {
 		 * @param obj The JSON object to validate.
 		 */
 		function validateSchemaNumberType(obj) {
-		    // There are no additional requirements for a number type.
+			// Check if any additional properties were added to this type.
+			if ((typeof Concordia.prototype.validateSchemaExtensionNumber !== "undefined") &&
+				(Object.prototype.toString.call(Concordia.prototype.validateSchemaExtensionNumber) == JS_TYPE_FUNCTION)) {
+				
+				Concordia.prototype.validateSchemaExtensionNumber(obj);
+			}
 		}
 		
 		/**
@@ -102,6 +303,14 @@ function Concordia(schema) {
 			else if (Object.prototype.toString.call(data) !== JS_TYPE_NUMBER) {
 				throw "The value is not a number: " + JSON.stringify(data);
 			}
+			
+			// Check if custom validation code is present.
+			if ((typeof Concordia.prototype.validateDataExtensionNumber !== "undefined") &&
+				(Object.prototype.toString.call(Concordia.prototype.validateDataExtensionNumber) == JS_TYPE_FUNCTION)) {
+				
+				Concordia
+				    .prototype.validateDataExtensionNumber(schema, data);
+			}
 		}
 		
 		/**
@@ -111,7 +320,12 @@ function Concordia(schema) {
 		 * @param obj The JSON object to validate.
 		 */
 		function validateSchemaStringType(obj) {
-		    // There are no additional requirements for a string type.
+			// Check if any additional properties were added to this type.
+			if ((typeof Concordia.prototype.validateSchemaExtensionString !== "undefined") &&
+				(Object.prototype.toString.call(Concordia.prototype.validateSchemaExtensionString) == JS_TYPE_FUNCTION)) {
+				
+				Concordia.prototype.validateSchemaExtensionString(obj);
+			}
 		}
 		
 		/**
@@ -129,6 +343,14 @@ function Concordia(schema) {
 			// If the data is present, ensure that it is a string.
 			else if (Object.prototype.toString.call(data) !== JS_TYPE_STRING) {
 				throw "The data is not a string: " + JSON.stringify(data);
+			}
+			
+			// Check if custom validation code is present.
+			if ((typeof Concordia.prototype.validateDataExtensionString !== "undefined") &&
+				(Object.prototype.toString.call(Concordia.prototype.validateDataExtensionString) == JS_TYPE_FUNCTION)) {
+				
+				Concordia
+				    .prototype.validateDataExtensionString(schema, data);
 			}
 		}
 		
@@ -228,6 +450,13 @@ function Concordia(schema) {
 		        // Validates the type of this field.
 		        validateSchemaType(field);
 		    }
+		    
+			// Check if any additional properties were added to this type.
+			if ((typeof Concordia.prototype.validateSchemaExtensionObject !== "undefined") &&
+				(Object.prototype.toString.call(Concordia.prototype.validateSchemaExtensionObject) == JS_TYPE_FUNCTION)) {
+				
+				Concordia.prototype.validateSchemaExtensionObject(obj);
+			}
 		}
 		
 		/**
@@ -290,6 +519,13 @@ function Concordia(schema) {
 					validateDataType(schemaField, dataField);
 				}
 			}
+			
+			// Check if custom validation code is present.
+			if ((typeof Concordia.prototype.validateDataExtensionObject !== "undefined") &&
+				(Object.prototype.toString.call(Concordia.prototype.validateDataExtensionObject) == JS_TYPE_FUNCTION)) {
+				
+				Concordia.prototype.validateDataExtensionObject(schema, data);
+			}
 		}
 		
 		/**
@@ -351,6 +587,13 @@ function Concordia(schema) {
 		    			"' field's type must be either an array or an object: " + 
         				JSON.stringify(obj);
 		    }
+		    
+			// Check if any additional properties were added to this type.
+			if ((typeof Concordia.prototype.validateSchemaExtensionArray !== "undefined") &&
+				(Object.prototype.toString.call(Concordia.prototype.validateSchemaExtensionArray) == JS_TYPE_FUNCTION)) {
+				
+				Concordia.prototype.validateSchemaExtensionArray(obj);
+			}
 		}
 		
 		/**
@@ -395,6 +638,14 @@ function Concordia(schema) {
 			// validator.
 			else {
 				validateDataConstTypeArray(arraySchema, data);
+			}
+			
+			// Check if custom validation code is present.
+			if ((typeof Concordia.prototype.validateDataExtensionArray !== "undefined") &&
+				(Object.prototype.toString.call(Concordia.prototype.validateDataExtensionArray) == JS_TYPE_FUNCTION)) {
+				
+				Concordia
+				    .prototype.validateDataExtensionArray(schema, data);
 			}
 		}
 		
@@ -451,7 +702,8 @@ function Concordia(schema) {
 			// considered invalid. Instead, the data array should be prepended
 			// with 'null's to match the schema's length.
 			if (schema.length !== dataArray.length) {
-				throw "The schema array and the data array are of different lengths: " +
+				throw "The schema array and the data array are of different " +
+						"lengths: " +
 						JSON.stringify(dataArray);
 			}
 			
@@ -604,7 +856,7 @@ function Concordia(schema) {
 		    }
 		    
 		    if ((optionalType !== "undefined") && 
-		    		(Object.prototype.toString.call(optional) !== JS_TYPE_BOOLEAN)) {
+		    	(Object.prototype.toString.call(optional) !== JS_TYPE_BOOLEAN)) {
 		    	
 		        throw "The 'optional' field's value must be of type boolean: " + 
 		        		JSON.stringify(obj);
@@ -654,7 +906,8 @@ function Concordia(schema) {
 		    }
 		    
 		    if (optionalType !== "undefined") {
-		    	throw "The 'optional' field is not allowed at the root of the definition.";
+		    	throw "The 'optional' field is not allowed at the root of " +
+		    			"the definition.";
 		    }
 		    
 		    validateSchemaType(obj);
@@ -682,7 +935,8 @@ function Concordia(schema) {
 				validateDataType(concordia[KEYWORD_SCHEMA], jsonData);
 			}
 			else {
-				throw "The data must either be a JSON object or a JSON array or a string representing one of the two.";
+				throw "The data must either be a JSON object or a JSON " +
+						"array or a string representing one of the two.";
 			}
 			
 			return jsonData;
@@ -700,7 +954,8 @@ function Concordia(schema) {
 		
 		// If it isn't a JSON object, then throw an exception.
 		if (schemaType !== JS_TYPE_OBJECT) {
-			throw "The schema must either be a JSON object or a string representing a JSON object.";
+			throw "The schema must either be a JSON object or a string " +
+					"representing a JSON object.";
 		}
 		
 		// Validate the schema and, if it passes, store it as the schema.
