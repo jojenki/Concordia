@@ -1,9 +1,7 @@
-{
-    "const_length_array":[
-        true,
-        0,
-        "Hello, world!",
-        true,
-        []
-    ]
-}
+[
+    true,
+    0,
+    "Hello, world!",
+    true,
+    []
+]

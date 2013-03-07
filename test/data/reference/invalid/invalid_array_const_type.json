@@ -1,0 +1,35 @@
+[
+    [
+        {
+        },
+        {
+        }
+    ],
+    [
+        {
+            "boolean":true,
+            "number":0,
+            "string":"foo",
+            "object":{},
+            "array":[]
+        }
+    ],
+    {
+        "base":true,
+        "boolean":true,
+        "number":0,
+        "string":"foo",
+        "object":{},
+        "array":[]
+    },
+    {
+        "object":
+        {
+            "boolean":true,
+            "number":0,
+            "string":"foo",
+            "object":{},
+            "array":[]
+        }
+    }
+]

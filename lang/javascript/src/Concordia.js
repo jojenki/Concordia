@@ -41,7 +41,9 @@
  * }
  * </code>
  * 
- * <p>Definitions and their data can be extended through a
+ * <h4>Extending Type and Data Validation</h4>
+ * <h5>Extending Type Validation</h5>
+ * <p>Schema type validation can be extended through a 
  * validateSchemaExtension{TYPE} function. For example, to add a custom
  * extension to the number type, you would first create the custom validation
  * function. This function will get one parameter which is the JSON object that
@@ -67,7 +69,7 @@
  *         
  *         throw "The 'min' value is missing.";
  *     }
- *     else if(Object.prototype.toString.call(min) !== "[object Number]") {
+ *     else if (Object.prototype.toString.call(min) !== "[object Number]") {
  *         throw "The 'min' value is not a number.";
  *     }
  *     
@@ -77,7 +79,7 @@
  *         
  *         throw "The 'max' value is missing.";
  *     }
- *     else if(Object.prototype.toString.call(max) !== "[object Number]") {
+ *     else if (Object.prototype.toString.call(max) !== "[object Number]") {
  *         throw "The 'max' value is not a number.";
  *     }
  * }
@@ -97,6 +99,7 @@
  * delete Concordia.prototype.validateSchemaExtensionNumber;
  * </code>
  * 
+ * <h5>Extending Data Validation</h5>
  * <p>Additionally, custom validators for the data may be added in a similar
  * way. Continuing the example above, a valid data point may look like:</p>
  * 
@@ -160,7 +163,6 @@
  * </code>
  * 
  * <h6>Code</h6>
- * 
  * <code>
  * function customNumberDataExtension(schema, data) {
  *     // Because the schema is stored within the object it should never be
@@ -177,14 +179,14 @@
  *     
  *     // Now, the business logic of this validation ensures that the value is
  *     // valid.
- *     if(value < min) {
+ *     if (value < min) {
  *         throw "The data is invalid because its value is less than the " +
  *                 'min' (" +
  *                 min +
  *                 "): " +
  *                 data;
  *     }
- *     if(value > max) {
+ *     if (value > max) {
  *         throw "The data is invalid because its value is greater than the " +
  *                 'max' (" +
  *                 max +
@@ -200,6 +202,118 @@
  * Concordia.prototype.validateDataExtensionNumber = customNumberDataExtension;
  * </code>
  * 
+ * <h4>Referencing Schemas</h4>
+ * <h5>Explanation</h5>
+ * <p>Concordia schemas may reference external schemas using IETF's JSON
+ * Reference RFC draft. Only objects and arrays may reference external schemas.
+ * </p>
+ * 
+ * <p>The reference definition will be part of the list of the fields list. 
+ * When a {@link Concordia#KEYWORD_REFERENCE} tag is given, the "name" field
+ * becomes optional and the "type" field becomes unused.</p>
+ * <ul>
+ *   <li>If it is not given, the referenced schema must have a root type of
+ *     "object", and the fields of that referenced object will be incorporated
+ *     into this local schema definition.</li>
+ *   <li>If the "name" field is given, the definition will completely define
+ *     the data for that field.</li>
+ * </ul>
+ * 
+ * <h5>Objects</h5>
+ * <h6>Field Aggregation</h6>
+ * <p>For example, if we had a local schema like:</p>
+ * 
+ * <code>
+ * {
+ *     "type":"object",
+ *     "schema":[
+ *         {
+ *             "name":"localField",
+ *             "type":"number"
+ *         },
+ *         {
+ *             "$ref":"http://localhost/"
+ *         }
+ *     ]
+ * }
+ * </code>
+ * 
+ * <p>The remote schema's root type must be "object"; its fields will be
+ * incorporated. Imagine this is our remote schema:</p>
+ * 
+ * <code>
+ * {
+ *     "doc":"This type must be 'object'.",
+ *     "type":"object",
+ *     "schema":[
+ *         {
+ *             "name":"remoteField",
+ *             "type":"string"
+ *         }
+ *     ]
+ * }
+ * </code>
+ * 
+ * <p>An example of valid data for the local schema would be:</p>
+ * 
+ * <code>
+ * {
+ *     "localField":0,
+ *     "remoteField":"foo"
+ * }
+ * </code>
+ * 
+ * <p>Because the names are merged together, the local schema's local field
+ * names cannot overlap with the remote schemas root fields.</p>
+ * 
+ * <h6>Sub-Definition</h6>
+ * <p>For example, if we had a local schema like:</p>
+ * 
+ * <code>
+ * {
+ *     "type":"object",
+ *     "schema":[
+ *         {
+ *             "name":"localField",
+ *             "type":"number"
+ *         },
+ *         {
+ *             "name":"localSubObject",
+ *             "$ref":"http://localhost/"
+ *         }
+ *     ]
+ * }
+ * </code>
+ * 
+ * <p>The remote schema may be anything as it will just be its own entity in
+ * the definition. An example could be:</p>
+ * 
+ * <code>
+ * {
+ *     "type":"array",
+ *     "schema":{
+ *         "type":"number"
+ *     }
+ * }
+ * </code>
+ * 
+ * <p>And, example data would look like:</p>
+ * 
+ * <code>
+ * {
+ *     "localField":0,
+ *     "localSubObject":[
+ *         1,
+ *         2,
+ *         3
+ *     ]
+ * }
+ * </code>
+ * 
+ * <h5>Arrays</h5>
+ * <p>Because arrays define each of their components independently of one
+ * another, there is no requirement on the referenced schema.</p>
+ * 
  * @author John Jenkins
  */
 function Concordia(schema) {
@@ -208,12 +322,14 @@ function Concordia(schema) {
     // An anonymous function is used to create the internals of the class and
     // prevent those functions and data from being exposed.
     (function (concordia) {
-        // Concordia key words.
+        // The Concordia keywords.
         var KEYWORD_TYPE = "type"
           , KEYWORD_OPTIONAL = "optional"
           , KEYWORD_DOC = "doc"
           , KEYWORD_SCHEMA = "schema"
           , KEYWORD_NAME = "name"
+          , KEYWORD_REFERENCE = "$ref"
+          , KEYWORD_CONCORDIA = "$concordia"
 
         // The Concordia types.
           , TYPE_BOOLEAN = "boolean"
@@ -229,11 +345,116 @@ function Concordia(schema) {
           , JS_TYPE_OBJECT = "[object Object]"
           , JS_TYPE_ARRAY = "[object Array]"
           , JS_TYPE_FUNCTION = "[object Function]";
+        
+        /**
+         * Apparently, indexOf is a little non-standard, so we offer an
+         * implementation if it doesn't already exist.
+         */
+        if (! Array.prototype.indexOf) {
+            Array.prototype.indexOf =
+                function(value) {
+                    for(var i = 0; i < this.length; i++) {
+                        if(this[i] === value) {
+                            return i;
+                        }
+                    }
+                    return -1;
+                };
+        }
 
         // Predefine the recursive functions to allow them to be referenced
         // before they are defined.
         function validateSchemaType(obj) {}
         function validateDataType(schema, data) {}
+        
+        /**
+         * <p>Retrieves a remote schema definition if the corresponding key
+         * exists, validates that the remote schema is valid by creating a
+         * Concordia object from it, and stores that Concordia object with the
+         * original reference object.</p>
+         * 
+         * <p>The key to use to reference a remote schema is
+         * {@link #KEYWORD_REFERENCE} and the value of that key must be a URL
+         * string that can be used to retrieve the schema. The decomposed
+         * object is then stored back in the original object under the key
+         * {@link #KEYWORD_CONCORDIA}. Note that this means that anything that
+         * was previously stored under this key will be overridden, so it is
+         * advised to never use that key.</p>
+         * 
+         * @param obj The object that may be a remote reference to a schema.
+         * 
+         * @param requiredType The type that the root of the remote schema must
+         *                     be in order to be compatible with this schema.
+         */
+        function getRemoteSchema(obj, requiredType) {
+            // Attempt to get the reference string from the object.
+            var ref = obj[KEYWORD_REFERENCE];
+            // If the value is JSON null, throw an exception indicating that.
+            if (ref === null) {
+                throw "The '" +
+                        KEYWORD_REFERENCE +
+                        "' field for the JSON object is null, which is not " +
+                        "allowed: " +
+                        JSON.stringify(obj);
+            }
+            var refType = typeof ref;
+            // If the reference field is missing, return.
+            if (refType === "undefined") {
+                return;
+            }
+            // If the reference field does exist but it isn't a string, that is
+            // an error.
+            if (Object.prototype.toString.call(ref) !== JS_TYPE_STRING) {
+                throw "The '" +
+                        KEYWORD_REFERENCE +
+                        "' field for the JSON object is not a string, which " +
+                        "it must be to reference an external schema: " +
+                        JSON.stringify(obj);
+            }
+            
+            // Get the referenced schema.
+            var subSchemaRequest = new XMLHttpRequest();
+            subSchemaRequest.open("GET", ref, false);
+            subSchemaRequest.send(null);
+            
+            // Verify that the request succeeded.
+            if(subSchemaRequest.status !== 200) {
+                throw "The sub-schema could not be retrieved (" +
+                        subSchemaRequest.status +
+                        "): " +
+                        subSchemaRequest.responseText;
+            }
+            
+            // Get the response text.
+            var subSchemaString = subSchemaRequest.responseText;
+            if ((subSchemaString === null) || 
+                (subSchemaString === "")) {
+                
+                throw "The sub-schema was not returned from the remote " +
+                		"location: " +
+                        ref;
+            }
+            
+            // Create a Concordia object from this remote Concordia schema.
+            var subSchema = new Concordia(subSchemaString);
+            subSchema.validateData = validateDataNoCheck;
+            
+            // If given a required root type, verify that the root type of the
+            // sub-schema is that type.
+            if ((requiredType !== null) &&
+                (subSchema[KEYWORD_SCHEMA][KEYWORD_TYPE] !== requiredType)) {
+                
+                throw "The sub-schema must have a root type of '" +
+                        requiredType +
+                        "'. Instead, it had a root type of '" +
+                        subSchema[KEYWORD_SCHEMA][KEYWORD_TYPE] +
+                        "': " +
+                        JSON.stringify(subSchema[KEYWORD_SCHEMA]);
+            }
+            
+            // Store the sub-schema in this object alongside the reference.
+            obj[KEYWORD_CONCORDIA] = subSchema;
+        }
         
         /**
          * Validates a JSON object whose "type" has already been determined to
@@ -247,8 +468,10 @@ function Concordia(schema) {
             var extensionType = 
                 Object
                     .prototype
-                    .toString
-                    .call(Concordia.prototype.validateSchemaExtensionBoolean);
+                        .toString
+                            .call(
+                                Concordia
+                                    .prototype.validateSchemaExtensionBoolean);
             if (extensionType === JS_TYPE_FUNCTION) {
                 Concordia.prototype.validateSchemaExtensionBoolean(obj);
             }
@@ -407,6 +630,7 @@ function Concordia(schema) {
               , schemaType
               , i
               , field
+              , fieldNames
               , name
               , nameType
               , extensionType;
@@ -433,6 +657,9 @@ function Concordia(schema) {
                         JSON.stringify(obj);
             }
             
+            // The list of field names needs to be initialized.
+            fieldNames = [];
+            
             // For each of the JSON objects, verify that it has a name and a
             // type.
             for (i = 0; i < schema.length; i += 1) {
@@ -455,7 +682,7 @@ function Concordia(schema) {
                             "' field is not a JSON object: " + 
                             JSON.stringify(obj);
                 }
-                
+
                 // Verify that the JSON object contains a "name" field and that
                 // it's not null.
                 name = field[KEYWORD_NAME];
@@ -467,17 +694,38 @@ function Concordia(schema) {
                             " is null: " + 
                             JSON.stringify(obj);
                 }
-                // Verify that the "name" field exists and is a string.
+                // Verify that the "name" or "$ref" fields exist. 
                 nameType = typeof name;
-                if (name === "undefined") {
-                    throw "The '" +
-                            KEYWORD_NAME +
-                            "' field for the JSON object at index " + 
-                            i + 
-                            " is misisng: " + 
-                            JSON.stringify(obj);
+                if (nameType === "undefined") {
+                    // If the "name" field didn't exist, attempt to retrieve a
+                    // remote schema.
+                    try {
+                        getRemoteSchema(field, TYPE_OBJECT);
+                    }
+                    // If decoding threw an exception, prepend the index of the
+                    // failed schema.
+                    catch(e) {
+                        throw "The referenced schema was invalid at index " +
+                                i +
+                                ": " +
+                                e.toString();
+                    }
+                    
+                    // If a remote schema was not added, then throw an
+                    // exception regarding the missing "name" field.
+                    if ((field[KEYWORD_CONCORDIA] === null) ||
+                        (typeof field[KEYWORD_CONCORDIA] === "undefined")) {
+                        
+                        throw "The '" +
+                                KEYWORD_NAME +
+                                "' field for the JSON object at index " + 
+                                i + 
+                                " is misisng: " + 
+                                JSON.stringify(obj);
+                    }
                 }
-                if (Object.prototype.toString.call(name) !== JS_TYPE_STRING) {
+                // If the "name" field does exist, it must be a string.
+                else if (Object.prototype.toString.call(name) !== JS_TYPE_STRING) {
                     throw "The type of the '" +
                             KEYWORD_NAME +
                             "' field for the JSON object at index " + 
@@ -485,9 +733,43 @@ function Concordia(schema) {
                             " is not a string: " + 
                             JSON.stringify(obj);
                 }
-                
-                // Validates the type of this field.
-                validateSchemaType(field);
+                // Validate the field.
+                else {
+                    // Verifies that no field with that name already exists.
+                    if (fieldNames.indexOf(name) !== -1) {
+                        throw "The field '" +
+                                name +
+                                "' is defined multiple times: " +
+                                JSON.stringify(obj);
+                    }
+                    // Add this field to the list of fields.
+                    else {
+                        fieldNames.push(name);
+                    }
+                    
+                    // The reference field overshaddows the name field, so we
+                    // first attempt to get the remote schema.
+                    try {
+                        getRemoteSchema(field, null);
+                    }
+                    // If decoding threw an exception, prepend the index of the
+                    // failed schema.
+                    catch(e) {
+                        throw "The referenced schema was invalid at index " +
+                                i +
+                                ": " +
+                                e.toString();
+                    }
+
+                    // If a remote schema was not added, then attempt to
+                    // recurse looking for the "type".
+                    if ((field[KEYWORD_CONCORDIA] === null) ||
+                        (typeof field[KEYWORD_CONCORDIA] === "undefined")) {
+                        
+                        // Validates the type of this field.
+                        validateSchemaType(field);
+                    }
+                }
             }
             
             // Check if any additional properties were added to this type.
@@ -516,6 +798,7 @@ function Concordia(schema) {
               , schemaFields
               , schemaField
               , name
+              , subSchema
               , dataField
               , dataFieldType
               , extensionType;
@@ -546,22 +829,42 @@ function Concordia(schema) {
                 // Get the name.
                 name = schemaField[KEYWORD_NAME];
                 
-                // Verify that the field exists in the data or that it is
-                // optional.
-                dataField = data[name];
-                dataFieldType = typeof dataField;
-                if (dataFieldType === "undefined") { 
-                    if(! schemaField[KEYWORD_OPTIONAL]) {
-                        throw "The field '" +
-                                name +
-                                "' is missing from the data: " +
-                                JSON.stringify(data);
-                    }
+                // Get the sub-schema.
+                subSchema = schemaField[KEYWORD_CONCORDIA];
+                
+                // If the name doesn't exist, then it must be a referenced
+                // schema.
+                if (typeof name === "undefined") {
+                    // Validate the data based on the sub-schema.
+                    subSchema.validateData(data);
                 }
+                // Otherwise, we need to pull out the data and validate that.
                 else {
-                    // Verify that the type of the value of that field in the 
-                    // data matches the schema.
-                    validateDataType(schemaField, dataField);
+                    // Get the data.
+                    dataField = data[name];
+                    
+                    // If the data doesn't exist, ensure that it is optional.
+                    dataFieldType = typeof dataField;
+                    if (dataFieldType === "undefined") { 
+                        if (! schemaField[KEYWORD_OPTIONAL]) {
+                            throw "The field '" +
+                                    name +
+                                    "' is missing from the data: " +
+                                    JSON.stringify(data);
+                        }
+                    }
+                    // If the data does exist, validate it.
+                    else {
+                        // If there is no sub-schema, validate using this 
+                        // sub-schema.
+                        if (typeof subSchema === "undefined") {
+                            validateDataType(schemaField, dataField);
+                        }
+                        // Otherwise, use the sub-schema to validate the data.
+                        else {
+                            subSchema.validateData(dataField);
+                        }
+                    }
                 }
             }
             
@@ -628,7 +931,7 @@ function Concordia(schema) {
             // If it is an object, this is a definition for a data point whose 
             // value will be a variable length array, but each index's type
             // must be the same.
-            else if(schemaJsType === JS_TYPE_OBJECT) {
+            else if (schemaJsType === JS_TYPE_OBJECT) {
                 validateSchemaConstTypeArray(schema);
             }
             // Otherwise, it is invalid.
@@ -741,7 +1044,26 @@ function Concordia(schema) {
                             JSON.stringify(obj);
                 }
                 
-                validateSchemaType(field);
+                // First, attempt to decode it as a remote schema.
+                try {
+                    getRemoteSchema(field, null);
+                }
+                // If decoding threw an exception, prepend the index of the
+                // failed schema.
+                catch(e) {
+                    throw "The referenced schema was invalid at index " +
+                            i +
+                            ": " +
+                            e.toString();
+                }
+
+                // If a remote schema was not added, then attempt to validate
+                // it like normal.
+                if ((field[KEYWORD_CONCORDIA] === null) ||
+                    (typeof field[KEYWORD_CONCORDIA] === "undefined")) {
+                    
+                    validateSchemaType(field);
+                }
             }
         }
         
@@ -771,7 +1093,20 @@ function Concordia(schema) {
             // For each schema in the schema array, ensure that the 
             // corresponding element in the data array is of the correct type.
             for (i = 0; i < schema.length; i++) {
-                validateDataType(schema[i], dataArray[i]);
+                // If this is a referenced schema, get the sub-schema and
+                // recurse on it.
+                var subSchema = schema[i][KEYWORD_CONCORDIA];
+                if ((subSchema !== null) &&
+                    (typeof subSchema !== "undefined") &&
+                    (subSchema instanceof Concordia)) {
+                    
+                    subSchema.validateData(dataArray[i]);
+                }
+                // Otherwise, get this index's schema and validate this index's
+                // data.
+                else {
+                    validateDataType(schema[i], dataArray[i]);
+                }
             }
         }
         
@@ -782,7 +1117,16 @@ function Concordia(schema) {
          * @param obj The JSON object to validate.
          */
         function validateSchemaConstTypeArray(obj) {
-            validateSchemaType(obj);
+            // First, attempt to decode it as a remote schema.
+            getRemoteSchema(obj, null);
+
+            // If a remote schema was not added, then attempt to validate
+            // it like normal.
+            if ((obj[KEYWORD_CONCORDIA] === null) ||
+                (typeof obj[KEYWORD_CONCORDIA] === "undefined")) {
+                
+                validateSchemaType(obj);
+            }
         }
         
         /**
@@ -795,10 +1139,26 @@ function Concordia(schema) {
         function validateDataConstTypeArray(schema, dataArray) {
             var i;
             
+            // Get the sub-schema if it exists; otherwise, set the variable to
+            // null.
+            var subSchema = schema[KEYWORD_CONCORDIA];
+            if ((typeof subSchema === "undefined") ||
+                (! (subSchema instanceof Concordia))) {
+                
+                subSchema = null;
+            }
+            
             // For each element in the data array, make sure that it conforms
             // to the given schema.
             for (i = 0; i < dataArray.length; i++) {
-                validateDataType(schema, dataArray[i]);
+                // If the sub-schema is null, use this field's schema.
+                if (subSchema === null) {
+                    validateDataType(schema, dataArray[i]);
+                }
+                // Otherwise, use the sub-schema to validate this index's data.
+                else {
+                    subSchema.validateData(dataArray[i]);
+                }
             }
         }
         
@@ -977,23 +1337,48 @@ function Concordia(schema) {
         }
         
         /**
+         * Validate data against any schema, even a partial one. This is used
+         * internally to allow checking of subcomponents without worrying about
+         * the specifics of the data.
+         * 
+         * @param data Any data to validate.
+         * 
+         *  @return The same data as it was passed in.
+         */
+        function validateDataNoCheck(data) {
+            // Validate the data using this object's sub-schema.
+            validateDataType(this[KEYWORD_SCHEMA], data);
+            
+            // Returns the data just to conform to the function it is
+            // shadowing, {@link #validateData(data)}.
+            return data;
+        };
+        
+        /**
          * Validate data against this object's schema.
          * 
-         * @param obj The data to validate against the schema. This must either
-         *            be a JSON object or a JSON array or a string representing 
-         *            one of the two.
+         * @param data The data to validate against the schema, which must be
+         *             valid JSON.
+         * 
+         *  @return The data that has been validated and now has a
+         *          language-level representation.
          */
         concordia.validateData = function (data) {
             var jsonData = data
               , jsonDataType = Object.prototype.toString.call(jsonData);
+            
+            // If the data is a string, attempt to convert it into an object or
+            // an array.
             if (jsonDataType === JS_TYPE_STRING) {
                 jsonData = JSON.parse(data);
                 jsonDataType = Object.prototype.toString.call(jsonData);
             }
             
-            // The type
-            if (jsonDataType === JS_TYPE_OBJECT) {
-                validateDataType(concordia[KEYWORD_SCHEMA], jsonData);
+            // The type of the data must be either an object or an array.
+            if ((jsonDataType === JS_TYPE_ARRAY) ||
+                (jsonDataType === JS_TYPE_OBJECT)) {
+                
+                validateDataType(this[KEYWORD_SCHEMA], jsonData);
             }
             else {
                 throw "The data must either be a JSON object or a JSON " +

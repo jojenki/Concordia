@@ -1,0 +1,12 @@
+{
+    "type":"object",
+    "schema":[
+        {
+            "name":"localField",
+            "type":"number"
+        },
+        {
+            "$ref":"http://localhost/"
+        }
+    ]
+}

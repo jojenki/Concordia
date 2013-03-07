@@ -1,0 +1,45 @@
+{
+    "doc":"This schema captures all possible variants via a constant-length array.",
+    "type":"array",
+    "schema":[
+        {
+            "doc":"Constant-type array with a referenced schema.",
+            "type":"array",
+            "schema":{
+                "$ref":"http://localhost/"
+            }
+        },
+        {
+            "doc":"Constant-length array with a referenced schema.",
+            "type":"array",
+            "schema":[
+                {
+                    "$ref":"http://localhost/"
+                }
+            ]
+        },
+        {
+            "doc":"Object with an extended schema.",
+            "type":"object",
+            "schema":[
+                {
+                    "name":"base",
+                    "type":"boolean"
+                },
+                {
+                    "$ref":"http://localhost/"
+                }
+            ]
+        },
+        {
+            "doc":"Object with a sub-schema.",
+            "type":"object",
+            "schema":[
+                {
+                    "name":"object",
+                    "$ref":"http://localhost/"
+                }
+            ]
+        }
+    ]
+}

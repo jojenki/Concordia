@@ -1,6 +1,4 @@
-{
-    "const_type_array_string":[
-        "Hello, world!",
-        0
-    ]
-}
+[
+    "Hello, world!",
+    0
+]

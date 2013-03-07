@@ -118,7 +118,7 @@ function checkDefinitions(definitionDir, shouldPass) {
 		catch(e) {
 			if(shouldPass) {
 				self.fail(
-					"An valid definition failed validation: " + 
+					"A valid definition failed validation: " + 
 						fileContents);
 			}
 		}
@@ -186,7 +186,13 @@ function checkDataDefinitions(concordia, dataDirectoryString, shouldPass) {
 	var files = getFiles(dataDirectoryString);
 	for (var i = 0; i < files.length; i++) {
 		// Get the file's contents.
-		var fileContents = getContents(files[i]);
+		var fileContents;
+		try {
+		    fileContents = getContents(files[i]);
+		}
+		catch(e) {
+		    throw "One of the tests is invalid JSON: " + getContents(files[i]);
+		}
 		
 		// Check the data against the definition.
 		try {
@@ -213,7 +219,7 @@ function checkDataDefinitions(concordia, dataDirectoryString, shouldPass) {
  * is executed. It ends with a colon so that the actual type checker can ensure
  * that the correct extension was performed.
  */
-var EXTENSION_TYPE_SUCCESS = "Pass: Type Extension: ";
+var EXTENSION_TYPE_SUCCESS = "Type Extension: ";
 /**
  * The function that will be assigned as the type checker for all types. It
  * will always thrown an exception which is the {@link #EXTENSION_TYPE_SUCCESS}
@@ -284,7 +290,7 @@ function checkExtensionType(typeDefinitionFile, type) {
 	
 	// If the test did not pass, fail.
 	if(! pass) {
-		self.fail("The type did not execute its type extension code.");
+		self.fail("The type did not execute its type extension code: " + type);
 	}
 }
 
@@ -293,7 +299,7 @@ function checkExtensionType(typeDefinitionFile, type) {
  * is executed. It ends with a colon so that the actual data checker can ensure
  * that the correct extension was performed.
  */
-var EXTENSION_DATA_SUCCESS = "Pass: Data Extension: ";
+var EXTENSION_DATA_SUCCESS = "Data Extension: ";
 /**
  * The function that will always be assigned as the data checker for all types.
  * It will always thrown an exception with is the
@@ -366,8 +372,110 @@ function checkExtensionData(definitionFile, dataFile, type) {
 	// If the test did not pass, fail.
 	if(! pass) {
 		self.fail(
-			"The type did not execute its data-checking extension code.");
+			"The type did not execute its data-checking extension code: " + 
+			    type);
 	}
+}
+
+/**
+ * <p>A mock object of the standard XMLHttpRequest object.</p>
+ * 
+ * <p>Because this testing suite does not come with a full implementation of
+ * the JavaScript environment, there is no pre-defined XMLHttpRequest object.
+ * This is used to our advantage by allowing us to mock the object to prevent
+ * actual network requests and, instead, to hijack the requests to return
+ * whatever we want.</p>
+ * 
+ * <p>For tests, modify the XMLHttpRequest.prototype.remote object. This object
+ * will not exist in the prototype, so you must first invoke:</p>
+ * 
+ * <code>
+ * XMLHttpRequest.prototype.remote = {}
+ * </code>
+ * 
+ * <p>All of the fields in this object should shadow their counterparts in a 
+ * real-world XMLHttpRequest object, but they will not be set until the 
+ * appropriate function is called. For instance, {@link XMLHttpRequest#send()}
+ * will set the status and response text.</p>
+ * 
+ * <p>This is not a feature-complete implementation. If Concordia is modified
+ * to use additional features of XMLHttpRequest, it is probably necessary that
+ * this be updated as well.</p>
+ */
+function XMLHttpRequest() {
+    var DEFAULT_STATUS = 0;
+    var DEFAULT_RESPONSE_TEXT = "";
+    
+    // Inherit the prototype's remote object.
+    this.remote = XMLHttpRequest.prototype.remote;
+    
+    // If there was no remote object in the prototype or if it was not an
+    // object, create one.
+    if(
+        (typeof this.remote === "undefined") ||
+        (this.remote === null) ||
+        (Object.prototype.toString.call(this.remote) !== "[object Object]")) {
+        
+        this.remote = {};
+    }
+    
+    // If no status was given, set it to the default.
+    if(typeof this.remote.status === "undefined") {
+        this.remote.status = DEFAULT_STATUS;
+    }
+    
+    // If no response text was given, set it to the default.
+    if(typeof this.remote.responseText === "undefined") {
+        this.remote.responseText = DEFAULT_RESPONSE_TEXT;
+    }
+    
+    // Set the internals of this object to their defaults.
+    this.status = DEFAULT_STATUS;
+    this.responseText = DEFAULT_RESPONSE_TEXT;
+    
+    /**
+     * The open function is not being utilized, so its implementation is empty.
+     */
+    this.open = function() {}
+    
+    /**
+     * The send function sets the status and the response text.
+     */
+    this.send = 
+        function() {
+            this.status = this.remote.status;
+            this.responseText = this.remote.responseText;
+        }
+}
+
+/**
+ * Gets the local and remote definitions, builds the Concordia object, and
+ * tests the valid and invalid data.
+ */
+function checkDataReference(localDefinition, remoteDefinition, invalidDataDirString, validDataDirString) {
+    // Create the valid, complex, referenced schema and use it for 
+    // validating some data.
+    XMLHttpRequest.prototype.remote.responseText =
+        getContents(getFile(remoteDefinition));
+    
+    // Build the Concordia object.
+    var concordia;
+    try {
+        concordia = new Concordia(getContents(getFile(localDefinition)));
+    }
+    catch(e) {
+        self.fail("A valid Concordia definition was rejected:\n" + e);
+    }
+    
+    // Test all of the invalid data.
+    if(invalidDataDirString !== null) {
+        checkDataDefinitions(concordia, invalidDataDirString, false);
+    }
+    
+    // Test all of the valid data.
+    if(validDataDirString !== null) {
+        checkDataDefinitions(concordia, validDataDirString, true);
+    }
 }
 
 // Create the test cases.
@@ -431,7 +539,7 @@ testCases(
 	 * The definition can be found in the ${test}/data/${type} directory and 
 	 * the test data can be found in the "valid" and "invalid" sub-directories.
 	 */
-	function testInvalidData() {
+	function testData() {
 		// Check the boolean data.
 		checkData(
 			"data/boolean/definition.json",
@@ -575,5 +683,265 @@ testCases(
 			"data/extended/array.json",
 			"array");
 		delete Concordia.prototype.validateDataExtensionArray;
+	},
+	
+	/**
+	 * Tests that remote schemas can correctly be pulled into a schema as it is
+	 * being validated.
+	 */
+	function testRemoteSchemas() {
+	    // A temporary testing object.
+	    var concordia;
+	    
+	    // Setup the XMLHttpRequest object.
+	    XMLHttpRequest.prototype.remote = {};
+	    
+	    // Test with an invalid status.
+	    XMLHttpRequest.prototype.remote.status = 404;
+	    try {
+    	    concordia = 
+    	        new Concordia(
+    	            getContents(
+    	                getFile("definition/reference/base_local.json")));
+    	    
+    	    self.fail(
+    	        "A remote schema could not be retrieved, but the Concordia " +
+    	            "object was built nevertheless.");
+	    }
+	    catch(e) {
+	        if(e.toString().indexOf("404") === -1) {
+	            self.fail(
+	                "An exception was thrown as expected due to the remote " +
+	                    "server returning a 404 status code, but the thrown " +
+	                    "exception did not indicate this: " +
+	                    e);
+	        }
+	    }
+	    
+	    // Test with no response text.
+	    XMLHttpRequest.prototype.remote.status = 200;
+	    XMLHttpRequest.prototype.remote.responseText = null;
+        try {
+            concordia = 
+                new Concordia(
+                    getContents(
+                        getFile("definition/reference/base_local.json")));
+            
+            self.fail(
+                "A remote schema had null returned, but the Concordia " +
+                    "object was built nevertheless.");
+        }
+        catch(e) {
+            if(e.toString().indexOf("not returned") === -1) {
+                self.fail(
+                    "An exception was thrown as expected due to the remote " +
+                        "server returning null, but the thrown exception did" +
+                        "not indicate this: " +
+                        e);
+            }
+        }
+	    
+	    // Test with an empty response.
+        XMLHttpRequest.prototype.remote.responseText = "";
+        try {
+            concordia = 
+                new Concordia(
+                    getContents(
+                        getFile("definition/reference/base_local.json")));
+            
+            self.fail(
+                "A remote schema had nothing returned, but the Concordia " +
+                    "object was built nevertheless.");
+        }
+        catch(e) {
+            if(e.toString().indexOf("not returned") === -1) {
+                self.fail(
+                    "An exception was thrown as expected due to the remote " +
+                        "server returning nothing, but the thrown exception " +
+                        "did not indicate this: " +
+                        e);
+            }
+        }
+	    
+	    // Test with a non-JSON response.
+        XMLHttpRequest.prototype.remote.responseText = "Not JSON";
+        try {
+            concordia = 
+                new Concordia(
+                    getContents(
+                        getFile("definition/reference/base_local.json")));
+            
+            self.fail(
+                "A remote schema had nothing returned, but the Concordia " +
+                    "object was built nevertheless.");
+        }
+        catch(e) {
+            if(e.toString().indexOf("SyntaxError") === -1) {
+                self.fail(
+                    "An exception was thrown as expected due to the remote " +
+                        "server returning nothing, but the thrown exception " +
+                        "did not indicate this: " +
+                        e);
+            }
+        }
+        
+        // Test with a valid schema and a valid remote schema.
+        XMLHttpRequest.prototype.remote.responseText =
+            getContents(getFile("definition/reference/base_remote.json"));
+        try {
+            concordia = 
+                new Concordia(
+                    getContents(
+                        getFile("definition/reference/base_local.json")));
+        }
+        catch(e) {
+            self.fail(
+                "A valid local and remote schema were given, but an " +
+                    "exception was still thrown: " +
+                    e);
+        }
+        
+        // Test with valid schemas where the local schema has a sub-object that
+        // is defined by a remote schema.
+        XMLHttpRequest.prototype.remote.responseText =
+            getContents(getFile("definition/reference/base_remote.json"));
+        try {
+            concordia = 
+                new Concordia(
+                    getContents(
+                        getFile(
+                            "definition/reference/object_sub_local.json")));
+        }
+        catch(e) {
+            self.fail(
+                "A valid local schema with a sub-schema and valid remote " +
+                    "schema were given, but an exception was still thrown: " +
+                    e);
+        }
+        
+        // Test with valid schemas where the extended schema has a field with a
+        // different name but the same type.
+        XMLHttpRequest.prototype.remote.responseText =
+            getContents(
+                getFile("definition/reference/object_extend_remote.json"));
+        try {
+            concordia = 
+                new Concordia(
+                    getContents(
+                        getFile(
+                            "definition/reference/object_extend_local.json")));
+        }
+        catch(e) {
+            self.fail(
+                "A valid local and remote schema were given with different " +
+                    "field names but the same type, and an exception was " +
+                    "thrown: " +
+                    e);
+        }
+        
+        // Test with valid schemas where the extended schema has a field with
+        // the same name as the base schema.
+        XMLHttpRequest.prototype.remote.responseText =
+            getContents(
+                getFile(
+                    "definition/reference/object_extend_remote_duplicate_name.json"));
+        try {
+            concordia = 
+                new Concordia(
+                    getContents(
+                        getFile(
+                            "definition/reference/object_extend_local.json")));
+            
+            self.fail(
+                "A remote schema had an identical name to the schema " +
+                    "extending it, but the Concordia object was built " +
+                    "nevertheless.");
+        }
+        catch(e) {
+            if(e.toString().indexOf("identical name") === -1) {
+                self.fail(
+                    "An exception was thrown as expected due to the remote " +
+                        "schema having an identical name as the local " +
+                        "schema, but the thrown exception did not indicate " +
+                        "this: " +
+                        e);
+            }
+        }
+        
+        // Test with valid schemas where the extended schema is an object and
+        // the base schema is an array.
+        XMLHttpRequest.prototype.remote.responseText =
+            getContents(
+                getFile(
+                    "definition/reference/object_extend_remote_not_object.json"));
+        try {
+            concordia = 
+                new Concordia(
+                    getContents(
+                        getFile(
+                            "definition/reference/object_extend_local.json")));
+            
+            self.fail(
+                "A remote schema was an array while the local schema was " +
+                    "an object, but the Concordia object was built " +
+                    "nevertheless.");
+        }
+        catch(e) {
+            if(e.toString().indexOf("root type") === -1) {
+                self.fail(
+                    "An exception was thrown as expected due to the remote " +
+                        "schema being an array and the local schema being " +
+                        "an object, but the thrown exception did not " +
+                        "indicate this: " +
+                        e);
+            }
+        }
+        
+        // Test with valid schemas where the local schema is an array. It
+        // shouldn't matter what the sub-schema is.
+        XMLHttpRequest.prototype.remote.responseText =
+            getContents(
+                getFile("definition/reference/base_remote.json"));
+        try {
+            concordia = 
+                new Concordia(
+                    getContents(
+                        getFile(
+                            "definition/reference/array_const_length.json")));
+        }
+        catch(e) {
+            self.fail(
+                "An exception was thrown for a base schema whose type was " +
+                    "a constant length array, so the remote type shouldn't " +
+                    "matter: " +
+                    e);
+        }
+        
+        // Test with valid schemas where the local schema is an array. It
+        // shouldn't matter what the sub-schema is.
+        XMLHttpRequest.prototype.remote.responseText =
+            getContents(
+                getFile("definition/reference/base_remote.json"));
+        try {
+            concordia = 
+                new Concordia(
+                    getContents(
+                        getFile(
+                            "definition/reference/array_const_type.json")));
+        }
+        catch(e) {
+            self.fail(
+                "An exception was thrown for a base schema whose type was " +
+                    "a constant type array, so the remote type shouldn't " +
+                    "matter: " +
+                    e);
+        }
+        
+        // Use a set of valid schemas to test valid and invalid data.
+        checkDataReference(
+            "data/reference/local.json",
+            "data/reference/referenced.json",
+            "data/reference/invalid/",
+            "data/reference/valid/");
 	}
 );

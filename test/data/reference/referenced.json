@@ -1,0 +1,27 @@
+{
+    "type":"object",
+    "schema":[
+        {
+            "name":"boolean",
+            "type":"boolean"
+        },
+        {
+            "name":"number",
+            "type":"number"
+        },
+        {
+            "name":"string",
+            "type":"string"
+        },
+        {
+            "name":"object",
+            "type":"object",
+            "schema":[]
+        },
+        {
+            "name":"array",
+            "type":"array",
+            "schema":[]
+        }
+    ]
+}

@@ -1,13 +1,7 @@
 {
-    "type":"object",
-    "schema":[
-        {
-            "name":"const_type_array_array",
-            "type":"array",
-            "schema":{
-                "type":"array",
-                "schema":[]
-            }
-        }
-    ]
+    "type":"array",
+    "schema":{
+        "type":"array",
+        "schema":[]
+    }
 }

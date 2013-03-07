@@ -1,28 +1,22 @@
 {
-    "type":"object",
+    "type":"array",
     "schema":[
         {
-            "name":"const_length_array",
+            "type":"boolean"
+        },
+        {
+            "type":"number"
+        },
+        {
+            "type":"string"
+        },
+        {
+            "type":"object",
+            "schema":[]
+        },
+        {
             "type":"array",
-            "schema":[
-                {
-                    "type":"boolean"
-                },
-                {
-                    "type":"number"
-                },
-                {
-                    "type":"string"
-                },
-                {
-                    "type":"object",
-                    "schema":[]
-                },
-                {
-                    "type":"array",
-                    "schema":[]
-                }
-            ]
+            "schema":[]
         }
     ]
 }

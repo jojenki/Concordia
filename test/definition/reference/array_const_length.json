@@ -1,0 +1,11 @@
+{
+    "type":"array",
+    "schema":[
+        {
+            "$ref":"http://localhost/"
+        },
+        {
+            "$ref":"http://localhost/"
+        }
+    ]
+}

@@ -1,12 +1,7 @@
 {
-    "type":"object",
-    "schema":[
-        {
-            "name":"const_type_array_string",
-            "type":"array",
-            "schema":{
-                "type":"string"
-            }
-        }
-    ]
+    "name":"const_type_array_string",
+    "type":"array",
+    "schema":{
+        "type":"string"
+    }
 }

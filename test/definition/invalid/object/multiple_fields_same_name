@@ -1,0 +1,15 @@
+{
+    "type":"object",
+    "schema":[
+        {
+            "name":"object",
+            "type":"object",
+            "schema":[]
+        },
+        {
+            "name":"object",
+            "type":"object",
+            "schema":[]
+        }
+    ]
+}

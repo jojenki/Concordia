@@ -1,8 +1,6 @@
-{
-    "const_length_array":[
-        true,
-        0,
-        {},
-        []
-    ]
-}
+[
+    true,
+    0,
+    {},
+    []
+]
