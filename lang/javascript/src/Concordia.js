@@ -364,8 +364,8 @@ function Concordia(schema) {
 
         // Predefine the recursive functions to allow them to be referenced
         // before they are defined.
-        function validateSchemaType(obj) {}
-        function validateDataType(schema, data) {}
+        function validateSchemaChild(obj) {}
+        function validateDataChild(schema, data) {}
         
         /**
          * <p>Retrieves a remote schema definition if the corresponding key
@@ -463,7 +463,7 @@ function Concordia(schema) {
          * 
          * @param obj The JSON object to validate.
          */
-        function validateSchemaBooleanType(obj) {
+        function validateSchemaBoolean(obj) {
             // Check if any additional properties were added to this type.
             var extensionType = 
                 Object
@@ -485,7 +485,7 @@ function Concordia(schema) {
          * 
          * @param data The data to validate.
          */
-        function validateDataBooleanType(schema, data) {
+        function validateDataBoolean(schema, data) {
             // If the data is not present or 'null', ensure that it is 
             // optional.
             if (data === null) {
@@ -517,7 +517,7 @@ function Concordia(schema) {
          * 
          * @param obj The JSON object to validate.
          */
-        function validateSchemaNumberType(obj) {
+        function validateSchemaNumber(obj) {
             // Check if any additional properties were added to this type.
             var extensionType = 
                 Object
@@ -539,7 +539,7 @@ function Concordia(schema) {
          * 
          * @param data The data to validate.
          */
-        function validateDataNumberType(schema, data) {
+        function validateDataNumber(schema, data) {
             // If the data is not present or 'null', ensure that it is
             // optional.
             if (data === null) {
@@ -571,7 +571,7 @@ function Concordia(schema) {
          * 
          * @param obj The JSON object to validate.
          */
-        function validateSchemaStringType(obj) {
+        function validateSchemaString(obj) {
             // Check if any additional properties were added to this type.
             var extensionType = 
                 Object
@@ -589,7 +589,7 @@ function Concordia(schema) {
          * Validates that the data is a string or, if it is 'null' or missing,
          * that the field is optional.
          */
-        function validateDataStringType(schema, data) {
+        function validateDataString(schema, data) {
             // If the data is not present or 'null', ensure that it is 
             // optional.
             if (data === null) {
@@ -625,7 +625,7 @@ function Concordia(schema) {
          * 
          * @param obj The JSON object to validate.
          */
-        function validateSchemaObjectType(obj) {
+        function validateSchemaObject(obj) {
             var schema = obj[KEYWORD_SCHEMA]
               , schemaType
               , i
@@ -767,7 +767,7 @@ function Concordia(schema) {
                         (typeof field[KEYWORD_CONCORDIA] === "undefined")) {
                         
                         // Validates the type of this field.
-                        validateSchemaType(field);
+                        validateSchemaChild(field);
                     }
                 }
             }
@@ -793,7 +793,7 @@ function Concordia(schema) {
          * 
          * @param data The data to validate.
          */
-        function validateDataObjectType(schema, data) {
+        function validateDataObject(schema, data) {
             var i
               , schemaFields
               , schemaField
@@ -858,7 +858,7 @@ function Concordia(schema) {
                         // If there is no sub-schema, validate using this 
                         // sub-schema.
                         if (typeof subSchema === "undefined") {
-                            validateDataType(schemaField, dataField);
+                            validateDataChild(schemaField, dataField);
                         }
                         // Otherwise, use the sub-schema to validate the data.
                         else {
@@ -897,7 +897,7 @@ function Concordia(schema) {
          * @see validateConstLengthArray(object)
          * @see validateConstTypeArray(object)
          */
-        function validateSchemaArrayType(obj) {
+        function validateSchemaArray(obj) {
             var schema = obj[KEYWORD_SCHEMA]
               , schemaType
               , schemaJsType
@@ -966,7 +966,7 @@ function Concordia(schema) {
          * @see validateConstLengthArray(object, array)
          * @see validateConstTypeArray(object, array)
          */
-        function validateDataArrayType(schema, data) {
+        function validateDataArray(schema, data) {
             var arraySchema
               , extensionType;
             
@@ -1062,7 +1062,7 @@ function Concordia(schema) {
                 if ((field[KEYWORD_CONCORDIA] === null) ||
                     (typeof field[KEYWORD_CONCORDIA] === "undefined")) {
                     
-                    validateSchemaType(field);
+                    validateSchemaChild(field);
                 }
             }
         }
@@ -1105,7 +1105,7 @@ function Concordia(schema) {
                 // Otherwise, get this index's schema and validate this index's
                 // data.
                 else {
-                    validateDataType(schema[i], dataArray[i]);
+                    validateDataChild(schema[i], dataArray[i]);
                 }
             }
         }
@@ -1125,7 +1125,7 @@ function Concordia(schema) {
             if ((obj[KEYWORD_CONCORDIA] === null) ||
                 (typeof obj[KEYWORD_CONCORDIA] === "undefined")) {
                 
-                validateSchemaType(obj);
+                validateSchemaChild(obj);
             }
         }
         
@@ -1153,7 +1153,7 @@ function Concordia(schema) {
             for (i = 0; i < dataArray.length; i++) {
                 // If the sub-schema is null, use this field's schema.
                 if (subSchema === null) {
-                    validateDataType(schema, dataArray[i]);
+                    validateDataChild(schema, dataArray[i]);
                 }
                 // Otherwise, use the sub-schema to validate this index's data.
                 else {
@@ -1165,17 +1165,18 @@ function Concordia(schema) {
         /**
          * Validates a JSON object based on its "type" field. If the object 
          * doesn't have a "type" field, it is invalid. The list of valid types
-         * are, "number", "string", "object", and "array".
+         * are, "boolean", "number", "string", "object", and "array".
          * 
          * @param obj The object whose "type" field will be evaluated and used 
          *            to continue validation.
          * 
-         * @see validateSchemaNumberType(object)
-         * @see validateSchemaStringType(object)
-         * @see validateSchemaObjectType(object)
-         * @see validateSchemaArrayType(object)
+         * @see validateSchemaBoolean(object)
+         * @see validateSchemaNumber(object)
+         * @see validateSchemaString(object)
+         * @see validateSchemaObject(object)
+         * @see validateSchemaArray(object)
          */
-        function validateSchemaType(obj) {
+        function validateSchemaChild(obj) {
             var type = obj[KEYWORD_TYPE]
               , typeType;
             
@@ -1200,25 +1201,25 @@ function Concordia(schema) {
             }
             
             if (type === TYPE_BOOLEAN) {
-                validateSchemaBooleanType(obj);
+                validateSchemaBoolean(obj);
             }
             else if (type === TYPE_NUMBER) {
-                validateSchemaNumberType(obj);
+                validateSchemaNumber(obj);
             }
             else if (type === TYPE_STRING) {
-                validateSchemaStringType(obj);
+                validateSchemaString(obj);
             }
             else if (type === TYPE_OBJECT) {
-                validateSchemaObjectType(obj);
+                validateSchemaObject(obj);
             }
             else if (type === TYPE_ARRAY) {
-                validateSchemaArrayType(obj);
+                validateSchemaArray(obj);
             }
             else {
                 throw "Type unknown: " + type;
             }
         
-            validateSchemaTypeOptions(obj);
+            validateSchemaOptions(obj);
         }
         
         /**
@@ -1228,28 +1229,29 @@ function Concordia(schema) {
          * 
          * @param data The data to validate.
          * 
-         * @see validateDataNumberType(object, object)
-         * @see validateDataStringType(object, object)
-         * @see validateDataObjectType(object, object)
-         * @see validateDataArrayType(object, object)
+         * @see validateDataBoolean(object, object)
+         * @see validateDataNumber(object, object)
+         * @see validateDataString(object, object)
+         * @see validateDataObject(object, object)
+         * @see validateDataArray(object, object)
          */
-        function validateDataType(schema, data) {
+        function validateDataChild(schema, data) {
             var type = schema[KEYWORD_TYPE];
             
             if (type === TYPE_BOOLEAN) {
-                validateDataBooleanType(schema, data);
+                validateDataBoolean(schema, data);
             }
             else if (type === TYPE_NUMBER) {
-                validateDataNumberType(schema, data);
+                validateDataNumber(schema, data);
             }
             else if (type === TYPE_STRING) {
-                validateDataStringType(schema, data);
+                validateDataString(schema, data);
             }
             else if (type === TYPE_OBJECT) {
-                validateDataObjectType(schema, data);
+                validateDataObject(schema, data);
             }
             else if (type === TYPE_ARRAY) {
-                validateDataArrayType(schema, data);
+                validateDataArray(schema, data);
             }
         }
         
@@ -1263,7 +1265,7 @@ function Concordia(schema) {
          * 
          * @param obj The type object to check for options.
          */
-        function validateSchemaTypeOptions(obj) {
+        function validateSchemaOptions(obj) {
             var doc = obj[KEYWORD_DOC]
               , docType = typeof doc
               , optional = obj[KEYWORD_OPTIONAL]
@@ -1331,7 +1333,7 @@ function Concordia(schema) {
                         "the definition.";
             }
             
-            validateSchemaType(obj);
+            validateSchemaChild(obj);
 
             return obj;
         }
@@ -1347,7 +1349,7 @@ function Concordia(schema) {
          */
         function validateDataNoCheck(data) {
             // Validate the data using this object's sub-schema.
-            validateDataType(this[KEYWORD_SCHEMA], data);
+            validateDataChild(this[KEYWORD_SCHEMA], data);
             
             // Returns the data just to conform to the function it is
             // shadowing, {@link #validateData(data)}.
@@ -1378,7 +1380,7 @@ function Concordia(schema) {
             if ((jsonDataType === JS_TYPE_ARRAY) ||
                 (jsonDataType === JS_TYPE_OBJECT)) {
                 
-                validateDataType(this[KEYWORD_SCHEMA], jsonData);
+                validateDataChild(this[KEYWORD_SCHEMA], jsonData);
             }
             else {
                 throw "The data must either be a JSON object or a JSON " +
