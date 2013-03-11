@@ -215,22 +215,22 @@ function checkDataDefinitions(concordia, dataDirectoryString, shouldPass) {
 }
 
 /**
- * The exception message that will be thrown when an extension's type checker
+ * The exception message that will be thrown when an decorator's type checker
  * is executed. It ends with a colon so that the actual type checker can ensure
- * that the correct extension was performed.
+ * that the correct decorator was performed.
  */
-var EXTENSION_TYPE_SUCCESS = "Type Extension: ";
+var DECORATOR_TYPE_SUCCESS = "Type Decorator: ";
 /**
  * The function that will be assigned as the type checker for all types. It
- * will always thrown an exception which is the {@link #EXTENSION_TYPE_SUCCESS}
+ * will always thrown an exception which is the {@link #DECORATOR_TYPE_SUCCESS}
  * text with the type of the given object appended.
  * 
  * @param obj The JSON representing the type being validated.
  * 
- * @throws EXTENSION_TYPE_SUCCESS {@link #EXTENSION_TYPE_SUCCESS} appended with
+ * @throws DECORATOR_TYPE_SUCCESS {@link #DECORATOR_TYPE_SUCCESS} appended with
  *         the type being validated.
  */
-function typeExtension(obj) {
+function typeDecorator(obj) {
 	// Each definition should have an extra field, 'extra', which we should be
 	// able to extract.
 	var extra = obj['extra'];
@@ -252,19 +252,19 @@ function typeExtension(obj) {
 	
 	// If everything succeeded, return the success message with this object's
 	// type.
-	throw EXTENSION_TYPE_SUCCESS + obj['type'];
+	throw DECORATOR_TYPE_SUCCESS + obj['type'];
 }
 
 /**
- * After Concordia's definition has been extended, use this function with a
- * definition for a specific type to guarantee that that type's extension
+ * After Concordia's definition has been decorated, use this function with a
+ * definition for a specific type to guarantee that that type's decorator
  * function will be executed.
  * 
  * @param typeDefinitionFile
  *        The definition file whose contents will be used to use to build a
- *        Concordia object which should test a specific type's extension.
+ *        Concordia object which should test a specific type's decorator.
  */
-function checkExtensionType(typeDefinitionFile, type) {
+function checkDecoratorType(typeDefinitionFile, type) {
 	// There are multiple flows that will result in an error, so we use a flag
 	// that we check at the end to determine if it failed.
 	var pass = false;
@@ -273,7 +273,7 @@ function checkExtensionType(typeDefinitionFile, type) {
 	var fileContents = getContents(getFile(typeDefinitionFile));
 	
 	// Get the custom exception for this type.
-	var exceptionText = EXTENSION_TYPE_SUCCESS + type;
+	var exceptionText = DECORATOR_TYPE_SUCCESS + type;
 	
 	// Create the Concordia object.
 	var concordia;
@@ -290,44 +290,44 @@ function checkExtensionType(typeDefinitionFile, type) {
 	
 	// If the test did not pass, fail.
 	if(! pass) {
-		self.fail("The type did not execute its type extension code: " + type);
+		self.fail("The type did not execute its type decorator code: " + type);
 	}
 }
 
 /**
- * The exception message that will be thrown when an extension's data checker
+ * The exception message that will be thrown when an decorator's data checker
  * is executed. It ends with a colon so that the actual data checker can ensure
- * that the correct extension was performed.
+ * that the correct decorator was performed.
  */
-var EXTENSION_DATA_SUCCESS = "Data Extension: ";
+var DECORATOR_DATA_SUCCESS = "Data Decorator: ";
 /**
  * The function that will always be assigned as the data checker for all types.
  * It will always thrown an exception with is the
- * {@link #EXTENSION_DATA_SUCCESS} text with the type of the given object
+ * {@link #DECORATOR_DATA_SUCCESS} text with the type of the given object
  * appended.
  * 
  * @param schema The schema being validated.
  * 
  * @param data The data to validate.
  * 
- * @throws EXTENSION_DATA_SUCCESS {@link #EXTENSION_DATA_SUCCESS} appended with
+ * @throws DECORATOR_DATA_SUCCESS {@link #DECORATOR_DATA_SUCCESS} appended with
  *         the type being validated.
  */
-function dataExtension(schema, data) {
-	throw EXTENSION_DATA_SUCCESS + schema['type'];
+function dataDecorator(schema, data) {
+	throw DECORATOR_DATA_SUCCESS + schema['type'];
 }
 
 /**
- * After Concordia's definition has been extended, use this function with data
- * for a specific type to guarantee that that type's extension function for the
+ * After Concordia's definition has been decorated, use this function with data
+ * for a specific type to guarantee that that type's decorator function for the
  * data will be executed.
  * 
  * @param typeDefinitionFile
  *        The definition file whose data should be used to use to build a 
  *        Concordia object which should test a
- *        specific type's extension.
+ *        specific type's decorator.
  */
-function checkExtensionData(definitionFile, dataFile, type) {
+function checkDecoratorData(definitionFile, dataFile, type) {
 	// There are multiple flows that will result in an error, so we use a flag
 	// that we check at the end to determine if it failed.
 	var pass = false;
@@ -354,7 +354,7 @@ function checkExtensionData(definitionFile, dataFile, type) {
 	var dataFileContents = getContents(getFile(dataFile));
 	
 	// Get the custom exception for this type.
-	var exceptionText = EXTENSION_DATA_SUCCESS + type;
+	var exceptionText = DECORATOR_DATA_SUCCESS + type;
 	
 	// Validate the data which should cause the custom validation code to run
 	// which should throw an exception.
@@ -372,7 +372,7 @@ function checkExtensionData(definitionFile, dataFile, type) {
 	// If the test did not pass, fail.
 	if(! pass) {
 		self.fail(
-			"The type did not execute its data-checking extension code: " + 
+			"The type did not execute its data-checking decorator code: " + 
 			    type);
 	}
 }
@@ -478,6 +478,69 @@ function checkDataReference(localDefinition, remoteDefinition, invalidDataDirStr
     }
 }
 
+/**
+ * Checks that a schema conforms to a base schema.
+ * 
+ * @param baseDefinitionFile The file for the base schema.
+ * 
+ * @param conformerDefinitionFile The file for the schema that conforms to the
+ *                                base schema.
+ *                                
+ * @param isValid Whether or not the conforming schema should actually conform
+ *                to the base schema.
+ */
+function checkSchemaConforms(baseDefinitionFile, conformerDefinitionFile, isValid) {
+    // Get and build the base definition.
+    var baseContents = getContents(getFile(baseDefinitionFile))
+      , base;
+    try {
+        base = new Concordia(baseContents);
+    }
+    catch(e) {
+        self.fail("A valid definition failed validation: " + extenderContents);
+    }
+    
+    // Get and build the extender definition.
+    var conformerContents = getContents(getFile(conformerDefinitionFile))
+      , conformer;
+    try {
+        conformer = new Concordia(conformerContents);
+    }
+    catch(e) {
+        self.fail("A valid definition failed validation: " + conformerContents);
+    }
+    
+    // Check the extender against the base.
+    try {
+        conformer.conformsTo(base);
+        
+        if(! isValid) {
+            self.fail(
+                "A schema that should not have conformed did:\n" +
+                    "\nBase:\n" + 
+                    baseContents +
+                    "\n" +
+                    "\Conformer:\n" +
+                    extenderContents +
+                    "\n\n" +
+                    e);
+        }
+    }
+    catch(e) {
+        if(isValid) {
+            self.fail(
+                "A schema that should have conformed did not:\n" +
+                    "\nBase:\n" + 
+                    baseContents +
+                    "\n" +
+                    "\Conformer:\n" +
+                    extenderContents +
+                    "\n\n" +
+                    e);
+        }
+    }
+}
+
 // Create the test cases.
 testCases(
 	// RhinoUnit requires this but doesn't document what it is or does.
@@ -528,9 +591,9 @@ testCases(
 		// Check that all of the valid definitions pass.
 		checkDefinitions("definition/valid/", true);
 		
-		// Check that all of the extended definitions pass despite having
+		// Check that all of the decorated definitions pass despite having
 		// additional, unknown keys.
-		checkDefinitions("definition/extended/", true);
+		checkDefinitions("definition/decorator/", true);
 	},
 	
 	/**
@@ -606,83 +669,83 @@ testCases(
 	},
 	
 	/**
-	 * Tests the extensions onto the type definitions. Types are allowed to
-	 * extend their definition. This will add those extended definitions and
+	 * Tests the decorators onto the type definitions. Types are allowed to
+	 * extend their definition. This will add those decorated definitions and
 	 * then check to be sure they are run.
 	 */
-	function testValidDefinitionExtensions() {
-		// Extend the prototype to include a check for boolean extensions.
-		Concordia.prototype.validateSchemaExtensionBoolean = typeExtension;
-		checkExtensionType("definition/extended/boolean.json", "boolean");
-		delete Concordia.prototype.validateSchemaExtensionBoolean;
+	function testValidSchemaDecorators() {
+		// Extend the prototype to include a check for boolean decorators.
+		Concordia.prototype.validateSchemaDecoratorBoolean = typeDecorator;
+		checkDecoratorType("definition/decorator/boolean.json", "boolean");
+		delete Concordia.prototype.validateSchemaDecoratorBoolean;
 		
-		// Extend the prototype to include a check for number extensions.
-		Concordia.prototype.validateSchemaExtensionNumber = typeExtension;
-		checkExtensionType("definition/extended/number.json", "number");
-		delete Concordia.prototype.validateSchemaExtensionNumber;
+		// Extend the prototype to include a check for number decorators.
+		Concordia.prototype.validateSchemaDecoratorNumber = typeDecorator;
+		checkDecoratorType("definition/decorator/number.json", "number");
+		delete Concordia.prototype.validateSchemaDecoratorNumber;
 		
-		// Extend the prototype to include a check for string extensions.
-		Concordia.prototype.validateSchemaExtensionString = typeExtension;
-		checkExtensionType("definition/extended/string.json", "string");
-		delete Concordia.prototype.validateSchemaExtensionString;
+		// Extend the prototype to include a check for string decorators.
+		Concordia.prototype.validateSchemaDecoratorString = typeDecorator;
+		checkDecoratorType("definition/decorator/string.json", "string");
+		delete Concordia.prototype.validateSchemaDecoratorString;
 		
-		// Extend the prototype to include a check for object extensions.
-		Concordia.prototype.validateSchemaExtensionObject = typeExtension;
-		checkExtensionType("definition/extended/object.json", "object");
-		delete Concordia.prototype.validateSchemaExtensionObject;
+		// Extend the prototype to include a check for object decorators.
+		Concordia.prototype.validateSchemaDecoratorObject = typeDecorator;
+		checkDecoratorType("definition/decorator/object.json", "object");
+		delete Concordia.prototype.validateSchemaDecoratorObject;
 		
-		// Extend the prototype to include a check for array extensions.
-		Concordia.prototype.validateSchemaExtensionArray = typeExtension;
-		checkExtensionType("definition/extended/array.json", "array");
-		delete Concordia.prototype.validateSchemaExtensionArray;
+		// Extend the prototype to include a check for array decorators.
+		Concordia.prototype.validateSchemaDecoratorArray = typeDecorator;
+		checkDecoratorType("definition/decorator/array.json", "array");
+		delete Concordia.prototype.validateSchemaDecoratorArray;
 	},
 	
 	/**
-	 * Tests the extensions onto the data. Concordia may be extended to include
+	 * Tests the decorators onto the data. Concordia may be decorated to include
 	 * additional validation of data, generally this is associated with 
 	 * extending type definitions. This will only add the data-checking
-	 * extensions and not the type-checking extensions.
+	 * decorators and not the type-checking decorators.
 	 */
-	function testValidDataExtensions() {
+	function testValidDataDecorators() {
 		// Extend the prototype to include a data check for boolean data.
-		Concordia.prototype.validateDataExtensionBoolean = dataExtension;
-		checkExtensionData(
-			"definition/extended/boolean.json",
-			"data/extended/boolean.json",
+		Concordia.prototype.validateDataDecoratorBoolean = dataDecorator;
+		checkDecoratorData(
+			"definition/decorator/boolean.json",
+			"data/decorator/boolean.json",
 			"boolean");
-		delete Concordia.prototype.validateDataExtensionBoolean;
+		delete Concordia.prototype.validateDataDecoratorBoolean;
 
 		// Extend the prototype to include a data check for number data.
-		Concordia.prototype.validateDataExtensionNumber = dataExtension;
-		checkExtensionData(
-			"definition/extended/number.json",
-			"data/extended/number.json",
+		Concordia.prototype.validateDataDecoratorNumber = dataDecorator;
+		checkDecoratorData(
+			"definition/decorator/number.json",
+			"data/decorator/number.json",
 			"number");
-		delete Concordia.prototype.validateDataExtensionNumber;
+		delete Concordia.prototype.validateDataDecoratorNumber;
 
 		// Extend the prototype to include a data check for number data.
-		Concordia.prototype.validateDataExtensionString = dataExtension;
-		checkExtensionData(
-			"definition/extended/string.json",
-			"data/extended/string.json",
+		Concordia.prototype.validateDataDecoratorString = dataDecorator;
+		checkDecoratorData(
+			"definition/decorator/string.json",
+			"data/decorator/string.json",
 			"string");
-		delete Concordia.prototype.validateDataExtensionString;
+		delete Concordia.prototype.validateDataDecoratorString;
 
 		// Extend the prototype to include a data check for object data.
-		Concordia.prototype.validateDataExtensionObject = dataExtension;
-		checkExtensionData(
-			"definition/extended/object.json",
-			"data/extended/object.json",
+		Concordia.prototype.validateDataDecoratorObject = dataDecorator;
+		checkDecoratorData(
+			"definition/decorator/object.json",
+			"data/decorator/object.json",
 			"object");
-		delete Concordia.prototype.validateDataExtensionObject;
+		delete Concordia.prototype.validateDataDecoratorObject;
 
 		// Extend the prototype to include a data check for array data.
-		Concordia.prototype.validateDataExtensionArray = dataExtension;
-		checkExtensionData(
-			"definition/extended/array.json",
-			"data/extended/array.json",
+		Concordia.prototype.validateDataDecoratorArray = dataDecorator;
+		checkDecoratorData(
+			"definition/decorator/array.json",
+			"data/decorator/array.json",
 			"array");
-		delete Concordia.prototype.validateDataExtensionArray;
+		delete Concordia.prototype.validateDataDecoratorArray;
 	},
 	
 	/**
@@ -943,5 +1006,108 @@ testCases(
             "data/reference/referenced.json",
             "data/reference/invalid/",
             "data/reference/valid/");
+	},
+	
+	/**
+	 * Test that schemas that attempt to extend an existing schema don't
+	 * violate the existing schema.
+	 */
+	function testExtendedSchemas() {
+        // Setup the XMLHttpRequest object.
+        XMLHttpRequest.prototype.remote = {};
+        XMLHttpRequest.prototype.remote.status = 200;
+        XMLHttpRequest.prototype.remote.responseText =
+            getContents(
+                getFile("definition/conforms/field1.json"));
+        
+	    // Pass: Original is empty. Extender is empty.
+	    checkSchemaConforms(
+	        "definition/conforms/empty.json",
+	        "definition/conforms/empty.json",
+	        true);
+	    
+	    // Pass: Original has one field. Exteder has the same field.
+        checkSchemaConforms(
+            "definition/conforms/field1.json",
+            "definition/conforms/field1.json",
+            true);
+    
+        // Fail: Original has one field. Extender has no fields.
+        checkSchemaConforms(
+            "definition/conforms/field1.json",
+            "definition/conforms/empty.json",
+            false);
+        
+        // Fail: Original has one field. Extender has a different field.
+        checkSchemaConforms(
+            "definition/conforms/field1.json",
+            "definition/conforms/field2.json",
+            false);
+        
+        // Pass: Original has one referenced field. Extender locally defines
+        // the same field.
+        checkSchemaConforms(
+            "definition/conforms/reference.json",
+            "definition/conforms/field1.json",
+            true);
+        
+        // Pass: Original has one field. Extender references the same field.
+        checkSchemaConforms(
+            "definition/conforms/field1.json",
+            "definition/conforms/reference.json",
+            true);
+        
+        // Pass: Original has one referenced field. Extender references the
+	    // same schema.
+        checkSchemaConforms(
+            "definition/conforms/reference.json",
+            "definition/conforms/reference.json",
+            true);
+	    
+	    // Pass: Original has one, optional field. Extender has the same,
+	    // non-optional field.
+        checkSchemaConforms(
+            "definition/conforms/optional.json",
+            "definition/conforms/field1.json",
+            true);
+        
+        // Pass: Original has one, optional field. Extender has no fields.
+        checkSchemaConforms(
+            "definition/conforms/optional.json",
+            "definition/conforms/empty.json",
+            true);
+	    
+	    // Fail: Original has one field. Extender has the same field but
+	    // attempts to make it optional.
+        checkSchemaConforms(
+            "definition/conforms/field1.json",
+            "definition/conforms/optional.json",
+            false);
+        
+        // Pass: Original has a constant-type array. Extender has the same.
+        checkSchemaConforms(
+            "definition/conforms/array_const_type.json",
+            "definition/conforms/array_const_type.json",
+            true);
+        
+        // Pass: Original has a constant-length array. Extender has the same.
+        checkSchemaConforms(
+            "definition/conforms/array_const_length.json",
+            "definition/conforms/array_const_length.json",
+            true);
+        
+        // Fail: Original has a constant-type array. Extender has a
+	    // constant-length array.
+        checkSchemaConforms(
+            "definition/conforms/array_const_type.json",
+            "definition/conforms/array_const_length.json",
+            false);
+	    
+	    // Fail: Original has a constant-length array. Extender has a
+	    // constant-type array.
+        checkSchemaConforms(
+            "definition/conforms/array_const_length.json",
+            "definition/conforms/array_const_type.json",
+            false);
 	}
 );

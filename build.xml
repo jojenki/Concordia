@@ -3,14 +3,14 @@
 <project name="Concordia" basedir="." default="dist">
 	<!-- Builds all of the sub-projects. -->
 	<target name="dist">
+        <!-- Create the "dist" folder where the results of sub-"dist" folders 
+             will be aggregated. -->
+        <mkdir dir="dist" />
+		
 		<!-- Echo that all of the sub-projects are being built. -->
         <echo message="----------------------------------------" />
         <echo message="- Building the Sub-Projects            -" />
         <echo message="----------------------------------------" />
-		
-		<!-- Create the "dist" folder where the results of sub-"dist" folders 
-		     will be aggregated. -->
-		<mkdir dir="dist" />
 		
 		<!-- Run the build for all of the sub-folders. -->
 		<subant>

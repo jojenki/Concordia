@@ -19,50 +19,83 @@
  * <p>A Concordia object has one constructor which takes a schema and validates
  * it. If it fails validation, an exception will be thrown.</p>
  * 
- * <p>There is one public function, which is validateData(data). 'data' must be
- * a JSON object or a JSON array or a string representing one of the two. If
- * the data is not valid, an exception will be thrown; otherwise, the function 
- * will return the valid JSON object or JSON array.</p>
+ * <p>There are two public functions,
+ * <a href="#extendingSchemas">conformsTo(schema)</a> and 
+ * <a href="#validateData">validateData(data)</a>.</p>
  * 
- * <p>An example example definition would be:</p>
+ * <h4>Public Functions</h4>
+ * <h5><a name="extendingSchemas">Extending Schema (Polymorphism)</a></h5>
+ * <h6>Function Prototype</h6>
+ * <code>conformsTo(schema)</code>
  * 
- * <code>
- * {
- *     "type":"object",
- *     "doc":"Valid data for this definition must be an object.",
- *     "schema":[
- *         {
- *             "name":"myNumber",
- *             "type":"number",
- *             "doc":"This object has one field whose key is \"myNumber\" and
- *                    whose value must be a valid JSON number type."
- *         }
- *     ]
- * }
- * </code>
+ * <h6>Description</h6>
+ * <p>Verifies that this schema extends a given schema and, if not, throws an
+ * exception.</p>
+ * 
+ * <h6>Parameters</h6>
+ * <table>
+ *   <tr>
+ *     <th>Name</th>
+ *     <th>Type</th>
+ *     <th>Description</th>
+ *   </tr>
+ *   <tr>
+ *     <td>schema</td>
+ *     <td>A Concordia object or a string representing one.</td>
+ *     <td>The schema that this schema must extend. This will be validated to
+ *       ensure that it is a valid schema.</td>
+ *   </tr>
+ * </table>
+ * 
+ * <h6>Return Value</h6>
+ * <p>Nothing is returned, but, if the other schema is invalid or if this
+ * schema doesn't fully define the other schema, an exception is thrown.</p>
+ * 
+ * <h5><a name="validateData">Validating Data</a></h5>
+ * <h6>Description</h6>
+ * <p>Validates that some data is valid for the schema used to create this
+ * object.</p>
+ * 
+ * <h6>Parameters</h6>
+ * <table>
+ *   <tr>
+ *     <th>Name</th>
+ *     <th>Type</th>
+ *     <th>Description</th>
+ *   </tr>
+ *   <tr>
+ *     <td>data</td>
+ *     <td>An object or an array or a string representing one of the two.</td>
+ *     <td>The data to be validated against the schema for this object.</td>
+ *   </tr>
+ * </table>
+ * 
+ * <h6>Return Value</h6>
+ * <p>If an object or array were given, they will be returned exactly as given.
+ * If a string was given, the object or array represented by that string will
+ * be returned.</p>
  * 
  * <h4>Extending Type and Data Validation</h4>
  * <h5>Extending Type Validation</h5>
  * <p>Schema type validation can be extended through a 
- * validateSchemaExtension{TYPE} function. For example, to add a custom
- * extension to the number type, you would first create the custom validation
+ * validateSchemaDecorator{TYPE} function. For example, to add a custom
+ * decorator to the number type, you would first create the custom validation
  * function. This function will get one parameter which is the JSON object that
  * is part of the definition defining this type, e.g.</p>
  * 
  * <code>
  * {
  *     "type":"octalDigit",
- *     "doc":"A single octal digit."
+ *     "doc":"A single octal digit.",
  *     "min":0,
  *     "max":7
  * }
  * </code>
  * 
- * <p>Then, the custom code that would enforce this extension may look like:
- * </p>
+ * <p>Then, the custom decorator code may look like:</p>
  * 
  * <code>
- * function customNumberTypeExtension(obj) {
+ * function customNumberTypeDecorator(obj) {
  *     var min = obj['min'];
  *     if ((min === null) ||
  *         (Object.prototype.toString.call(min) !== "undefined")) {
@@ -89,14 +122,14 @@
  * it will be executed when new Concordia objects are created.</p>
  * 
  * <code>
- * Concordia.prototype.validateSchemaExtensionNumber = 
- *     customNumberTypeExtension;
+ * Concordia.prototype.validateSchemaDecoratorNumber = 
+ *     customNumberTypeDecorator;
  * </code>
  * 
- * <p>Extensions can always been cleaned up by deleting them, e.g.</p>
+ * <p>Decorators can always been cleaned up by deleting them, e.g.</p>
  * 
  * <code>
- * delete Concordia.prototype.validateSchemaExtensionNumber;
+ * delete Concordia.prototype.validateSchemaDecoratorNumber;
  * </code>
  * 
  * <h5>Extending Data Validation</h5>
@@ -110,7 +143,7 @@
  * </code>
  * 
  * <p>The custom code that would be run when the data was being validated is
- * named similarly, validateDataExtension{TYPE}. The custom function will take
+ * named similarly, validateDataDecorator{TYPE}. The custom function will take
  * two arguments, the first is the part of the schema that corresponds to this
  * piece of the data and the second is the specific portion of the data to be
  * evaluated.</p>
@@ -164,7 +197,7 @@
  * 
  * <h6>Code</h6>
  * <code>
- * function customNumberDataExtension(schema, data) {
+ * function customNumberDataDecorator(schema, data) {
  *     // Because the schema is stored within the object it should never be
  *     // modified, so it can safely be assumed that the 'min' and 'max' fields
  *     // that were validated during schema validation will still be present.
@@ -199,10 +232,10 @@
  * <p>And, to add it to Concordia:</p>
  * 
  * <code>
- * Concordia.prototype.validateDataExtensionNumber = customNumberDataExtension;
+ * Concordia.prototype.validateDataDecoratorNumber = customNumberDataDecorator;
  * </code>
  * 
- * <h4>Referencing Schemas</h4>
+ * <h4><a name="referencingSchemas">Referencing Schemas</a></h4>
  * <h5>Explanation</h5>
  * <p>Concordia schemas may reference external schemas using IETF's JSON
  * Reference RFC draft. Only objects and arrays may reference external schemas.
@@ -364,29 +397,21 @@ function Concordia(schema) {
 
         // Predefine the recursive functions to allow them to be referenced
         // before they are defined.
-        function validateSchemaChild(obj) {}
-        function validateDataChild(schema, data) {}
+        function validateSchemaInternal(obj) {}
+        function validateDataInternal(schema, data) {}
         
         /**
-         * <p>Retrieves a remote schema definition if the corresponding key
-         * exists, validates that the remote schema is valid by creating a
-         * Concordia object from it, and stores that Concordia object with the
-         * original reference object.</p>
+         * Retrieves a remote schema via the {@link #KEYWORD_REFERENCE} field
+         * and returns it.
          * 
-         * <p>The key to use to reference a remote schema is
-         * {@link #KEYWORD_REFERENCE} and the value of that key must be a URL
-         * string that can be used to retrieve the schema. The decomposed
-         * object is then stored back in the original object under the key
-         * {@link #KEYWORD_CONCORDIA}. Note that this means that anything that
-         * was previously stored under this key will be overridden, so it is
-         * advised to never use that key.</p>
-         * 
-         * @param obj The object that may be a remote reference to a schema.
-         * 
-         * @param requiredType The type that the root of the remote schema must
-         *                     be in order to be compatible with this schema.
+         * @param obj The object with a {@link #KEYWORD_REFERENCE} field that
+         *            reference the remote schema to be downloaded, compiled,
+         *            and returned.
+         *            
+         * @return A compiled Concordia object if a {@link #KEYWORD_REFERENCE}
+         *         field existed; otherwise, null is returned. 
          */
-        function getRemoteSchema(obj, requiredType) {
+        function getRemoteSchema(obj) {
             // Attempt to get the reference string from the object.
             var ref = obj[KEYWORD_REFERENCE];
             // If the value is JSON null, throw an exception indicating that.
@@ -400,7 +425,7 @@ function Concordia(schema) {
             var refType = typeof ref;
             // If the reference field is missing, return.
             if (refType === "undefined") {
-                return;
+                return null;
             }
             // If the reference field does exist but it isn't a string, that is
             // an error.
@@ -431,12 +456,44 @@ function Concordia(schema) {
                 (subSchemaString === "")) {
                 
                 throw "The sub-schema was not returned from the remote " +
-                		"location: " +
+                        "location: " +
                         ref;
             }
             
-            // Create a Concordia object from this remote Concordia schema.
-            var subSchema = new Concordia(subSchemaString);
+            // Create a Concordia object from this remote Concordia schema and
+            // return it.
+            return new Concordia(subSchemaString);
+        }
+        
+        /**
+         * <p>Retrieves a remote schema definition if the corresponding key
+         * exists, validates that the remote schema is valid by creating a
+         * Concordia object from it, and stores that Concordia object with the
+         * original reference object.</p>
+         * 
+         * <p>The key to use to reference a remote schema is
+         * {@link #KEYWORD_REFERENCE} and the value of that key must be a URL
+         * string that can be used to retrieve the schema. The decomposed
+         * object is then stored back in the original object under the key
+         * {@link #KEYWORD_CONCORDIA}. Note that this means that anything that
+         * was previously stored under this key will be overridden, so it is
+         * advised to never use that key.</p>
+         * 
+         * @param obj The object that may be a remote reference to a schema.
+         * 
+         * @param requiredType The type that the root of the remote schema must
+         *                     be in order to be compatible with this schema.
+         */
+        function storeRemoteSchema(obj, requiredType) {
+            // Get the remote schema.
+            var subSchema = getRemoteSchema(obj);
+            
+            // If there was no reference to a remote schema, null is returned.
+            if(subSchema === null) {
+                return;
+            }
+            
+            // Update its data validation function to the internal one.
             subSchema.validateData = validateDataNoCheck;
             
             // If given a required root type, verify that the root type of the
@@ -465,15 +522,33 @@ function Concordia(schema) {
          */
         function validateSchemaBoolean(obj) {
             // Check if any additional properties were added to this type.
-            var extensionType = 
+            var decoratorType = 
                 Object
                     .prototype
                         .toString
                             .call(
                                 Concordia
-                                    .prototype.validateSchemaExtensionBoolean);
-            if (extensionType === JS_TYPE_FUNCTION) {
-                Concordia.prototype.validateSchemaExtensionBoolean(obj);
+                                    .prototype.validateSchemaDecoratorBoolean);
+            if (decoratorType === JS_TYPE_FUNCTION) {
+                Concordia.prototype.validateSchemaDecoratorBoolean(obj);
+            }
+        }
+        
+        /**
+         * Validates that a schema that is extending another is presently
+         * defining a boolean value.
+         * 
+         * @param original The part of the original schema that is defining a
+         *                 boolean.
+         * 
+         * @param extender The part of the schema that is extending the
+         *                 original schema. This must define a boolean.
+         */
+        function validateSchemaExtenderBoolean(original, extender) {
+            if (extender[KEYWORD_TYPE] !== TYPE_BOOLEAN) {
+                throw "The original schema defined a boolean, but the " +
+                        "extending schema does not: " +
+                        JSON.stringify(extender);
             }
         }
         
@@ -499,15 +574,15 @@ function Concordia(schema) {
             }
             
             // Check if custom validation code is present.
-            var extensionType = 
+            var decoratorType = 
                 Object
                     .prototype
                         .toString
                             .call(
                                 Concordia
-                                    .prototype.validateDataExtensionBoolean);
-            if (extensionType === JS_TYPE_FUNCTION) {
-                Concordia.prototype.validateDataExtensionBoolean(schema, data);
+                                    .prototype.validateDataDecoratorBoolean);
+            if (decoratorType === JS_TYPE_FUNCTION) {
+                Concordia.prototype.validateDataDecoratorBoolean(schema, data);
             }
         }
         
@@ -519,15 +594,33 @@ function Concordia(schema) {
          */
         function validateSchemaNumber(obj) {
             // Check if any additional properties were added to this type.
-            var extensionType = 
+            var decoratorType = 
                 Object
                     .prototype
                         .toString
                             .call(
                                 Concordia
-                                    .prototype.validateSchemaExtensionNumber);
-            if (extensionType === JS_TYPE_FUNCTION) {
-                Concordia.prototype.validateSchemaExtensionNumber(obj);
+                                    .prototype.validateSchemaDecoratorNumber);
+            if (decoratorType === JS_TYPE_FUNCTION) {
+                Concordia.prototype.validateSchemaDecoratorNumber(obj);
+            }
+        }
+        
+        /**
+         * Validates that a schema that is extending another is presently
+         * defining a number value.
+         * 
+         * @param original The part of the original schema that is defining a
+         *                 number.
+         * 
+         * @param extender The part of the schema that is extending the
+         *                 original schema. This must define a number.
+         */
+        function validateSchemaExtenderNumber(original, extender) {
+            if (extender[KEYWORD_TYPE] !== TYPE_NUMBER) {
+                throw "The original schema defined a number, but the " +
+                		"extending schema does not: " +
+                		JSON.stringify(extender);
             }
         }
         
@@ -553,15 +646,15 @@ function Concordia(schema) {
             }
             
             // Check if custom validation code is present.
-            var extensionType = 
+            var decoratorType = 
                 Object
                     .prototype
                         .toString
                             .call(
                                 Concordia
-                                    .prototype.validateDataExtensionNumber);
-            if (extensionType === JS_TYPE_FUNCTION) {
-                Concordia.prototype.validateDataExtensionNumber(schema, data);
+                                    .prototype.validateDataDecoratorNumber);
+            if (decoratorType === JS_TYPE_FUNCTION) {
+                Concordia.prototype.validateDataDecoratorNumber(schema, data);
             }
         }
         
@@ -573,15 +666,33 @@ function Concordia(schema) {
          */
         function validateSchemaString(obj) {
             // Check if any additional properties were added to this type.
-            var extensionType = 
+            var decoratorType = 
                 Object
                     .prototype
                         .toString
                             .call(
                                 Concordia
-                                    .prototype.validateSchemaExtensionString);
-            if (extensionType === JS_TYPE_FUNCTION) {
-                Concordia.prototype.validateSchemaExtensionString(obj);
+                                    .prototype.validateSchemaDecoratorString);
+            if (decoratorType === JS_TYPE_FUNCTION) {
+                Concordia.prototype.validateSchemaDecoratorString(obj);
+            }
+        }
+        
+        /**
+         * Validates that a schema that is extending another is presently
+         * defining a string value.
+         * 
+         * @param original The part of the original schema that is defining a
+         *                 string.
+         * 
+         * @param extender The part of the schema that is extending the
+         *                 original schema. This must define a string.
+         */
+        function validateSchemaExtenderString(original, extender) {
+            if (extender[KEYWORD_TYPE] !== TYPE_STRING) {
+                throw "The original schema defined a string, but the " +
+                        "extending schema does not: " +
+                        JSON.stringify(extender);
             }
         }
         
@@ -603,15 +714,15 @@ function Concordia(schema) {
             }
             
             // Check if custom validation code is present.
-            var extensionType = 
+            var decoratorType = 
                 Object
                     .prototype
                         .toString
                             .call(
                                 Concordia
-                                    .prototype.validateDataExtensionString);
-            if (extensionType === JS_TYPE_FUNCTION) {
-                Concordia.prototype.validateDataExtensionString(schema, data);
+                                    .prototype.validateDataDecoratorString);
+            if (decoratorType === JS_TYPE_FUNCTION) {
+                Concordia.prototype.validateDataDecoratorString(schema, data);
             }
         }
         
@@ -633,7 +744,7 @@ function Concordia(schema) {
               , fieldNames
               , name
               , nameType
-              , extensionType;
+              , decoratorType;
             
             // Verify the schema isn't null.
             if (schema === null) {
@@ -700,7 +811,7 @@ function Concordia(schema) {
                     // If the "name" field didn't exist, attempt to retrieve a
                     // remote schema.
                     try {
-                        getRemoteSchema(field, TYPE_OBJECT);
+                        storeRemoteSchema(field, TYPE_OBJECT);
                     }
                     // If decoding threw an exception, prepend the index of the
                     // failed schema.
@@ -750,7 +861,7 @@ function Concordia(schema) {
                     // The reference field overshaddows the name field, so we
                     // first attempt to get the remote schema.
                     try {
-                        getRemoteSchema(field, null);
+                        storeRemoteSchema(field, null);
                     }
                     // If decoding threw an exception, prepend the index of the
                     // failed schema.
@@ -767,22 +878,139 @@ function Concordia(schema) {
                         (typeof field[KEYWORD_CONCORDIA] === "undefined")) {
                         
                         // Validates the type of this field.
-                        validateSchemaChild(field);
+                        validateSchemaInternal(field);
                     }
                 }
             }
             
             // Check if any additional properties were added to this type.
-            extensionType = 
+            decoratorType = 
                 Object
                     .prototype
                         .toString
                             .call(
                                 Concordia
-                                    .prototype.validateSchemaExtensionObject);
-            if (extensionType === JS_TYPE_FUNCTION) {
-                Concordia.prototype.validateSchemaExtensionObject(obj);
+                                    .prototype.validateSchemaDecoratorObject);
+            if (decoratorType === JS_TYPE_FUNCTION) {
+                Concordia.prototype.validateSchemaDecoratorObject(obj);
             }
+        }
+        
+        /**
+         * Verifies that the extending schema defines, at least, all of the
+         * fields defined in the original schema and, for each field, recurses
+         * on their type to ensure that it matches as well.
+         * 
+         * @param original The original schema that is being extended.
+         * 
+         * @param extender The schema that is extending the original schema.
+         */
+        function validateSchemaExtenderObject(original, extender) {
+            if (extender[KEYWORD_TYPE] !== TYPE_OBJECT) {
+                throw "The original schema defined an object, but the " +
+                        "extending schema does not: " +
+                        JSON.stringify(extender);
+            }
+            
+            // Get the extender's fields.
+            var extenderFields = extender[KEYWORD_SCHEMA];
+            
+            // Get the original fields and cycle through them.
+            var originalFields = original[KEYWORD_SCHEMA];
+            for (var i = 0; i < originalFields.length; i += 1) {
+                // Get the field at this index.
+                var originalField = originalFields[i];
+                
+                // Get the name.
+                var originalName = originalField[KEYWORD_NAME];
+                
+                // If the original didn't have a name then it must have a
+                // sub-schema with names.
+                if (typeof originalName === "undefined") {
+                    // Recurse on the sub-object.
+                    validateSchemaExtender(
+                        originalField[KEYWORD_CONCORDIA],
+                        extender);
+                }
+                else {
+                    // Get the definition from the extender.
+                    var extenderField =
+                        getSchemaObjectField(extenderFields, originalName);
+                    
+                    // If the field doesn't exist, check if it is optional.
+                    if (extenderField === null) {
+                        // Get the "optional" field.
+                        var optional = originalField[KEYWORD_OPTIONAL];
+                        
+                        // The only way to succeed at this point is if the
+                        // original defined it as optional.
+                        if ((typeof optional === "undefined") ||
+                            (! optional)) {
+                        
+                            throw "The original schema has a field that is " +
+                            		"not optional and not found in the " +
+                            		"extending schema ('" +
+                            		originalName +
+                            		"'): "
+                            		JSON.stringify(extender);
+                        }
+                    }
+                    // Recurse on the field.
+                    else {
+                        // Recurse on the original field and this field.
+                        validateSchemaExtender(originalField, extenderField);
+                    }
+                }
+            }
+        }
+        
+        /**
+         * For an array of fields defining an object, return the schema for the
+         * field whose name matches the given name.
+         * 
+         * @param fields The array of objects defining the fields.
+         * 
+         * @param name The field name whose name should be returned.
+         * 
+         * @return The object defining the field or null if no such field
+         *         exists.
+         */
+        function getSchemaObjectField(fields, name) {
+            var i
+              , field
+              , fieldName;
+            
+            // Cycle through the fields.
+            for (var i = 0; i < fields.length; i++) {
+                // Get the field.
+                field = fields[i];
+                // Get the field's name.
+                fieldName = field[KEYWORD_NAME];
+                
+                // If this field doesn't have a name, then it must have a
+                // sub-object, so we must cycle through that.
+                if (typeof fieldName === "undefined") {
+                    // Recurse on the sub-object.
+                    var result =
+                        getSchemaObjectField(
+                            // Get the sub-object's schema's list of fields.
+                            field[KEYWORD_CONCORDIA][KEYWORD_SCHEMA][KEYWORD_SCHEMA],
+                            name);
+                    
+                    // If an applicable field was found, return it.
+                    if (result !== null) {
+                        return result;
+                    }
+                }
+                // If this field does have a name and it matches the name we
+                // wanted, return this field.
+                else if (fieldName === name) {
+                    return field;
+                }
+            }
+            
+            // If no field was ever found, return null.
+            return null;
         }
         
         /**
@@ -801,7 +1029,7 @@ function Concordia(schema) {
               , subSchema
               , dataField
               , dataFieldType
-              , extensionType;
+              , decoratorType;
             
             // If the data is not present or 'null', ensure that it is 
             // optional.
@@ -858,7 +1086,7 @@ function Concordia(schema) {
                         // If there is no sub-schema, validate using this 
                         // sub-schema.
                         if (typeof subSchema === "undefined") {
-                            validateDataChild(schemaField, dataField);
+                            validateDataInternal(schemaField, dataField);
                         }
                         // Otherwise, use the sub-schema to validate the data.
                         else {
@@ -869,15 +1097,15 @@ function Concordia(schema) {
             }
             
             // Check if custom validation code is present.
-            extensionType = 
+            decoratorType = 
                 Object
                     .prototype
                         .toString
                             .call(
                                 Concordia
-                                    .prototype.validateDataExtensionObject);
-            if (extensionType === JS_TYPE_FUNCTION) {
-                Concordia.prototype.validateDataExtensionObject(schema, data);
+                                    .prototype.validateDataDecoratorObject);
+            if (decoratorType === JS_TYPE_FUNCTION) {
+                Concordia.prototype.validateDataDecoratorObject(schema, data);
             }
         }
         
@@ -901,7 +1129,7 @@ function Concordia(schema) {
             var schema = obj[KEYWORD_SCHEMA]
               , schemaType
               , schemaJsType
-              , extensionType;
+              , decoratorType;
 
             // Validate that the schema is not null.
             if (schema === null) {
@@ -943,15 +1171,87 @@ function Concordia(schema) {
             }
             
             // Check if any additional properties were added to this type.
-            extensionType = 
+            decoratorType = 
                 Object
                     .prototype
                         .toString
                             .call(
                                 Concordia
-                                    .prototype.validateSchemaExtensionArray);
-            if (extensionType === JS_TYPE_FUNCTION) {
-                Concordia.prototype.validateSchemaExtensionArray(obj);
+                                    .prototype.validateSchemaDecoratorArray);
+            if (decoratorType === JS_TYPE_FUNCTION) {
+                Concordia.prototype.validateSchemaDecoratorArray(obj);
+            }
+        }
+        
+        /**
+         * Validates that an extending schema defines has the same schema as
+         * original schema. For constant-type arrays, this means that the
+         * singular object is the same. For constant-length arrays, the schemas
+         * must be equal on an index-by-index basis.
+         * 
+         * @param original The original schema that is being extended.
+         * 
+         * @param extender The schema that is extending the original schema.
+         */
+        function validateSchemaExtenderArray(original, extender) {
+            if (extender[KEYWORD_TYPE] !== TYPE_ARRAY) {
+                throw "The original schema defined an array, but the " +
+                        "extending schema does not: " +
+                        extender;
+            }
+            
+            // Determine if the original schema is a constant-type or a
+            // constant-length array.
+            var originalSchema = original[KEYWORD_SCHEMA];
+
+            // Determine if the extending schema is a constant-type or a
+            // constant-length array.
+            var extenderSchema = extender[KEYWORD_SCHEMA];
+            
+            // If it's a constant-type array, ensure that the extending schema
+            // is also a constant-type array and then delegate to the
+            // constant-type array schema extender function.
+            if (typeof originalSchema === TYPE_OBJECT) {
+                // If the extending schema is also defining a constant-type
+                // array, recurse on their child schemas.
+                if (typeof extenderSchema === TYPE_OBJECT) {
+                    validateSchemaExtender(originalSchema, extenderSchema);
+                }
+                // Otherwise, the schemas have differed.
+                else {
+                    throw "The original schema defined a constant-type " +
+                    		"array, but the extending schema did not: " +
+                    		JSON.stringify(extender);
+                }
+            }
+            // Otherwise, the original must be a constant-length array, so we
+            // need to ensure that the extending schema is also defining a
+            // constant length array.
+            else {
+                // If the extending schema is also defining a constant-length
+                // array, recurse on each index to ensure that they are the
+                // same.
+                if (typeof extenderSchema === TYPE_ARRAY) {
+                    // Ensure that the two schemas are the same length. 
+                    if (originalSchema.length !== extenderSchema.length) {
+                        throw "The original schema and the extending schema " +
+                        		"are different lengths: " +
+                        		JSON.stringify(extender);
+                    }
+                    
+                    // Ensure each index defines the same schema.
+                    for (var i = 0; i < originalSchema.length; i++) {
+                        validateSchemaExtender(
+                            originalSchema[i],
+                            extenderSchema[i]);
+                    }
+                }
+                // Otherwise, the schemas have differed.
+                else {
+                    throw "The original schema defined a constant-length " +
+                    		"array, but the extending schema did not: " +
+                    		JSON.stringify(extender);
+                }
             }
         }
         
@@ -968,7 +1268,7 @@ function Concordia(schema) {
          */
         function validateDataArray(schema, data) {
             var arraySchema
-              , extensionType;
+              , decoratorType;
             
             // If the data is not present or 'null', ensure that it is
             // optional.
@@ -1001,15 +1301,15 @@ function Concordia(schema) {
             }
             
             // Check if custom validation code is present.
-            extensionType = 
+            decoratorType = 
                 Object
                     .prototype
                         .toString
                             .call(
                                 Concordia
-                                    .prototype.validateDataExtensionArray);
-            if (extensionType === JS_TYPE_FUNCTION) {
-                Concordia.prototype.validateDataExtensionArray(schema, data);
+                                    .prototype.validateDataDecoratorArray);
+            if (decoratorType === JS_TYPE_FUNCTION) {
+                Concordia.prototype.validateDataDecoratorArray(schema, data);
             }
         }
         
@@ -1046,7 +1346,7 @@ function Concordia(schema) {
                 
                 // First, attempt to decode it as a remote schema.
                 try {
-                    getRemoteSchema(field, null);
+                    storeRemoteSchema(field, null);
                 }
                 // If decoding threw an exception, prepend the index of the
                 // failed schema.
@@ -1062,7 +1362,7 @@ function Concordia(schema) {
                 if ((field[KEYWORD_CONCORDIA] === null) ||
                     (typeof field[KEYWORD_CONCORDIA] === "undefined")) {
                     
-                    validateSchemaChild(field);
+                    validateSchemaInternal(field);
                 }
             }
         }
@@ -1105,7 +1405,7 @@ function Concordia(schema) {
                 // Otherwise, get this index's schema and validate this index's
                 // data.
                 else {
-                    validateDataChild(schema[i], dataArray[i]);
+                    validateDataInternal(schema[i], dataArray[i]);
                 }
             }
         }
@@ -1118,14 +1418,14 @@ function Concordia(schema) {
          */
         function validateSchemaConstTypeArray(obj) {
             // First, attempt to decode it as a remote schema.
-            getRemoteSchema(obj, null);
+            storeRemoteSchema(obj, null);
 
             // If a remote schema was not added, then attempt to validate
             // it like normal.
             if ((obj[KEYWORD_CONCORDIA] === null) ||
                 (typeof obj[KEYWORD_CONCORDIA] === "undefined")) {
                 
-                validateSchemaChild(obj);
+                validateSchemaInternal(obj);
             }
         }
         
@@ -1153,12 +1453,43 @@ function Concordia(schema) {
             for (i = 0; i < dataArray.length; i++) {
                 // If the sub-schema is null, use this field's schema.
                 if (subSchema === null) {
-                    validateDataChild(schema, dataArray[i]);
+                    validateDataInternal(schema, dataArray[i]);
                 }
                 // Otherwise, use the sub-schema to validate this index's data.
                 else {
                     subSchema.validateData(dataArray[i]);
                 }
+            }
+        }
+        
+        /**
+         * Validates a JSON object by checking for the "doc" and "optional" 
+         * tags. Any combination of the tags may be given. 
+         * 
+         * The "doc" tag must be a string.
+         * 
+         * The "optional" tag must be a boolean.
+         * 
+         * @param obj The type object to check for options.
+         */
+        function validateSchemaOptions(obj) {
+            var doc = obj[KEYWORD_DOC]
+              , docType = typeof doc
+              , optional = obj[KEYWORD_OPTIONAL]
+              , optionalType = typeof optional;
+            
+            if ((docType !== "undefined") && 
+                (Object.prototype.toString.call(doc) !== JS_TYPE_STRING)) {
+                
+                throw "The 'doc' field's value must be of type string: " + 
+                        JSON.stringify(obj);
+            }
+            
+            if ((optionalType !== "undefined") && 
+                (Object.prototype.toString.call(optional) !== JS_TYPE_BOOLEAN)) {
+                
+                throw "The 'optional' field's value must be of type boolean: " + 
+                        JSON.stringify(obj);
             }
         }
         
@@ -1176,7 +1507,7 @@ function Concordia(schema) {
          * @see validateSchemaObject(object)
          * @see validateSchemaArray(object)
          */
-        function validateSchemaChild(obj) {
+        function validateSchemaInternal(obj) {
             var type = obj[KEYWORD_TYPE]
               , typeType;
             
@@ -1223,6 +1554,39 @@ function Concordia(schema) {
         }
         
         /**
+         * Validates that one schema extends an 'original' schema. This means
+         * that all data-definition fields must be equal, e.g. types, object
+         * field names, etc. It is assumed that the two schemas have already
+         * been validated. If the extender does not fully extend the original,
+         * an exception is thrown. There is no return value.
+         * 
+         * @param original The original schema which is being extended.
+         * 
+         * @param extender The schema that is extending the original.
+         */
+        function validateSchemaExtender(original, extender) {
+            var type = original[KEYWORD_TYPE];
+            
+            if (type === TYPE_BOOLEAN) {
+                validateSchemaExtenderBoolean(original, extender);
+            }
+            else if (type === TYPE_NUMBER) {
+                validateSchemaExtenderNumber(original, extender);
+            }
+            else if (type === TYPE_STRING) {
+                validateSchemaExtenderString(original, extender);
+            }
+            else if (type === TYPE_OBJECT) {
+                validateSchemaExtenderObject(original, extender);
+            }
+            else if (type === TYPE_ARRAY) {
+                validateSchemaExtenderArray(original, extender);
+            }
+            
+            validateSchemaOptionsExtender(original, extender);
+        }
+        
+        /**
          * Passes the data to the appropriate validator based on the schema.
          * 
          * @param schema The schema to use to validate the data.
@@ -1235,7 +1599,7 @@ function Concordia(schema) {
          * @see validateDataObject(object, object)
          * @see validateDataArray(object, object)
          */
-        function validateDataChild(schema, data) {
+        function validateDataInternal(schema, data) {
             var type = schema[KEYWORD_TYPE];
             
             if (type === TYPE_BOOLEAN) {
@@ -1256,33 +1620,28 @@ function Concordia(schema) {
         }
         
         /**
-         * Validates a JSON object by checking for the "doc" and "optional" 
-         * tags. Any combination of the tags may be given. 
+         * Validates the "option"s fields of a schema that is being extended by
+         * another schema.
          * 
-         * The "doc" tag must be a string.
+         * @param original The original schema that is being extended.
          * 
-         * The "optional" tag must be a boolean.
-         * 
-         * @param obj The type object to check for options.
+         * @param extender The schema that is extending the original schema.
          */
-        function validateSchemaOptions(obj) {
-            var doc = obj[KEYWORD_DOC]
-              , docType = typeof doc
-              , optional = obj[KEYWORD_OPTIONAL]
-              , optionalType = typeof optional;
+        function validateSchemaOptionsExtender(original, extender) {
+            // Get the optional field from the original schema.
+            var optional = original[KEYWORD_OPTIONAL];
             
-            if ((docType !== "undefined") && 
-                    (Object.prototype.toString.call(doc) !== JS_TYPE_STRING)) {
+            // If the original schema did not define an optional value or if it
+            // explicitly states that the field is not optional, then the
+            // extender cannot override this and make it optional.
+            if ((
+                    (typeof optional === "undefined") ||
+                    (! optional)) &&
+                (extender[KEYWORD_OPTIONAL])) {
                 
-                throw "The 'doc' field's value must be of type string: " + 
-                        JSON.stringify(obj);
-            }
-            
-            if ((optionalType !== "undefined") && 
-                (Object.prototype.toString.call(optional) !== JS_TYPE_BOOLEAN)) {
-                
-                throw "The 'optional' field's value must be of type boolean: " + 
-                        JSON.stringify(obj);
+                throw "The original schema did not allow a field to be " +
+                		"optional, but the extending schema does: " +
+                		JSON.stringify(extender);
             }
         }
         
@@ -1333,7 +1692,7 @@ function Concordia(schema) {
                         "the definition.";
             }
             
-            validateSchemaChild(obj);
+            validateSchemaInternal(obj);
 
             return obj;
         }
@@ -1345,16 +1704,43 @@ function Concordia(schema) {
          * 
          * @param data Any data to validate.
          * 
-         *  @return The same data as it was passed in.
+         * @return The same data as it was passed in.
          */
         function validateDataNoCheck(data) {
             // Validate the data using this object's sub-schema.
-            validateDataChild(this[KEYWORD_SCHEMA], data);
+            validateDataInternal(this[KEYWORD_SCHEMA], data);
             
             // Returns the data just to conform to the function it is
             // shadowing, {@link #validateData(data)}.
             return data;
-        };
+        }
+        
+        /**
+         * Validates that this schema extends some other schema. If it does
+         * not, an exception is thrown. If it does nothing is returned.
+         * 
+         * @param schema The schema that this Concoria object must conform to.
+         *               This may be an already-created Concordia object or a
+         *               string that represents one, which will first be
+         *               evaluated.
+         */
+        concordia.conformsTo = function (schema) {
+            if (schema === null) {
+                throw "The schema is null.";
+            }
+            
+            // Get the original schema and attempt to convert it if it isn't
+            // already a Concordia object.
+            var original = schema;
+            if (! (schema instanceof Concordia)) {
+                original = new Concordia(schema);
+            }
+            
+            // Use the internal function to validate that 
+            validateSchemaExtender(
+                original[KEYWORD_SCHEMA],
+                this[KEYWORD_SCHEMA]);
+        }
         
         /**
          * Validate data against this object's schema.
@@ -1362,7 +1748,7 @@ function Concordia(schema) {
          * @param data The data to validate against the schema, which must be
          *             valid JSON.
          * 
-         *  @return The data that has been validated and now has a
+         * @return The data that has been validated and now has a
          *          language-level representation.
          */
         concordia.validateData = function (data) {
@@ -1380,7 +1766,7 @@ function Concordia(schema) {
             if ((jsonDataType === JS_TYPE_ARRAY) ||
                 (jsonDataType === JS_TYPE_OBJECT)) {
                 
-                validateDataChild(this[KEYWORD_SCHEMA], jsonData);
+                validateDataInternal(this[KEYWORD_SCHEMA], jsonData);
             }
             else {
                 throw "The data must either be a JSON object or a JSON " +
@@ -1388,7 +1774,7 @@ function Concordia(schema) {
             }
             
             return jsonData;
-        };
+        }
         
         // Validate that the schema is valid.
         var schemaJson = schema;

@@ -1,0 +1,6 @@
+{
+    "type":"array",
+    "schema":{
+        "type":"boolean"
+    }
+}

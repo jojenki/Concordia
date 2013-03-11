@@ -1,0 +1,9 @@
+{
+    "type":"object",
+    "schema":[
+        {
+            "name":"field1",
+            "type":"boolean"
+        }
+    ]
+}
