@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!-- The build file for the JavaScript version of Concordia. -->
+<project name="ConcoridaJava" basedir="." default="dist">
+	<!-- Target to test the code. -->
+    <target name="test">
+        <echo message="----------------------------------------" />
+        <echo message="- Testing the Java Module              -" />
+        <echo message="----------------------------------------" />
+    	
+        <!-- TODO -->
+    </target>
+    
+	<!-- Target to create a tested, distributable copy of Concordia. -->
+	<!-- TODO: Lint is currently being disabled as the LINT checker is throwing
+	     an exception that I don't have time to debug. -->
+    <target name="dist" depends="test">
+        <echo message="----------------------------------------" />
+    	<echo message="- Building the Java Module             -" />
+        <echo message="----------------------------------------" />
+    	
+    	<mkdir dir="dist" />
+    	
+    	<!-- TODO -->
+    </target>
+	
+	<!-- Cleans everything by deleting the "dist" folder. -->
+	<target name="clean">
+        <echo message="----------------------------------------" />
+        <echo message="- Cleaning the Java Module             -" />
+        <echo message="----------------------------------------" />
+
+		<delete dir="dist" />
+	</target>
+</project>
