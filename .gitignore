@@ -1,4 +1,6 @@
 .project
+.classpath
+.settings
 dist
 lang/*/dist
 .DS_Store
