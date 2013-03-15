@@ -1,6 +1,6 @@
 {
     "type":"object",
-    "schema":[
+    "fields":[
         {
             "name":"field1",
             "type":"boolean"

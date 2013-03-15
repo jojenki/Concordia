@@ -1,6 +1,6 @@
 {
     "type":"array",
-    "schema":{
+    "constType":{
         "type":"boolean"
     }
 }

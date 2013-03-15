@@ -1,6 +1,6 @@
 {
     "type":"array",
-    "schema":[
+    "constLength":[
         {
             "$ref":"http://localhost/"
         },

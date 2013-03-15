@@ -1,10 +1,10 @@
 {
     "type":"object",
-    "schema":[
+    "fields":[
         {
             "name":"test",
             "type":"array",
-            "schema":[],
+            "constLength":[],
             "extra":0
         }
     ]

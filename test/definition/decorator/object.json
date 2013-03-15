@@ -1,10 +1,10 @@
 {
     "type":"object",
-    "schema":[
+    "fields":[
         {
             "name":"test",
             "type":"object",
-            "schema":[],
+            "fields":[],
             "extra":0
         }
     ]
