@@ -1,6 +1,6 @@
 {
     "type":"object",
-    "schema":[
+    "fields":[
         {
             "name":"boolean",
             "type":"boolean"
@@ -16,12 +16,12 @@
         {
             "name":"object",
             "type":"object",
-            "schema":[]
+            "fields":[]
         },
         {
             "name":"array",
             "type":"array",
-            "schema":[]
+            "constLength":[]
         }
     ]
 }

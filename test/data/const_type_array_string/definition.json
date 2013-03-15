@@ -1,7 +1,7 @@
 {
     "name":"const_type_array_string",
     "type":"array",
-    "schema":{
+    "constType":{
         "type":"string"
     }
 }

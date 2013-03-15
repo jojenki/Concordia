@@ -1,15 +1,15 @@
 {
     "type":"object",
-    "schema":[
+    "fields":[
         {
             "name":"object",
             "type":"object",
-            "schema":[]
+            "fields":[]
         },
         {
             "name":"object",
             "type":"object",
-            "schema":[]
+            "fields":[]
         }
     ]
 }

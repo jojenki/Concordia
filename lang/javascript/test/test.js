@@ -83,6 +83,7 @@ function getContents(file) {
 	}
 	catch(e) {
 		self.fail("Could not open the file: " + e);
+		return;
 	}
 	
 	return new String(FileUtils.readFully(fileReader));
@@ -103,23 +104,23 @@ function checkDefinitions(definitionDir, shouldPass) {
 		// Get the file's contents.
 		var fileContents = getContents(files[i]);
 
-		// Attempt to create a new instance of Concordia with the invalid
-		// definition.
-		var concordia;
+		// Attempt to create a new instance of Concordia with the definition.
 		try {
-			concordia = new Concordia(fileContents);
+			new Concordia(fileContents);
 			
 			if(! shouldPass) {
 				self.fail(
-					"An invalid definition passed validation: " +
+					"An invalid definition passed validation:\n" +
 						fileContents);
 			}
 		}
 		catch(e) {
 			if(shouldPass) {
 				self.fail(
-					"A valid definition failed validation: " + 
-						fileContents);
+					"A valid definition failed validation:\n" + 
+						fileContents +
+						"\n\n" +
+						e);
 			}
 		}
 	}
@@ -156,6 +157,7 @@ function checkData(definitionFileString, invalidDataDirString, validDataDirStrin
 	}
 	catch(e) {
 		self.fail("A valid Concordia definition was rejected:\n" + e);
+		return;
 	}
 	
 	// Test all of the invalid data.
@@ -275,10 +277,9 @@ function checkDecoratorType(typeDefinitionFile, type) {
 	// Get the custom exception for this type.
 	var exceptionText = DECORATOR_TYPE_SUCCESS + type;
 	
-	// Create the Concordia object.
-	var concordia;
+	// Attempt to create the Concordia object.
 	try {
-		concordia = new Concordia(fileContents);
+		new Concordia(fileContents);
 	}
 	// If it throws an exception and, if it's the exception we expect, set the
 	// test as passed.
@@ -436,7 +437,7 @@ function XMLHttpRequest() {
     /**
      * The open function is not being utilized, so its implementation is empty.
      */
-    this.open = function() {}
+    this.open = function() {};
     
     /**
      * The send function sets the status and the response text.
@@ -445,7 +446,7 @@ function XMLHttpRequest() {
         function() {
             this.status = this.remote.status;
             this.responseText = this.remote.responseText;
-        }
+        };
 }
 
 /**
@@ -465,6 +466,7 @@ function checkDataReference(localDefinition, remoteDefinition, invalidDataDirStr
     }
     catch(e) {
         self.fail("A valid Concordia definition was rejected:\n" + e);
+        return;
     }
     
     // Test all of the invalid data.
@@ -497,7 +499,12 @@ function checkSchemaConforms(baseDefinitionFile, conformerDefinitionFile, isVali
         base = new Concordia(baseContents);
     }
     catch(e) {
-        self.fail("A valid definition failed validation: " + extenderContents);
+        self.fail(
+            "A valid definition failed validation:\n" + 
+                baseContents +
+                "\n\n" +
+                e);
+        return;
     }
     
     // Get and build the extender definition.
@@ -508,6 +515,7 @@ function checkSchemaConforms(baseDefinitionFile, conformerDefinitionFile, isVali
     }
     catch(e) {
         self.fail("A valid definition failed validation: " + conformerContents);
+        return;
     }
     
     // Check the extender against the base.
@@ -521,7 +529,7 @@ function checkSchemaConforms(baseDefinitionFile, conformerDefinitionFile, isVali
                     baseContents +
                     "\n" +
                     "\Conformer:\n" +
-                    extenderContents +
+                    conformerContents +
                     "\n\n" +
                     e);
         }
@@ -534,7 +542,7 @@ function checkSchemaConforms(baseDefinitionFile, conformerDefinitionFile, isVali
                     baseContents +
                     "\n" +
                     "\Conformer:\n" +
-                    extenderContents +
+                    conformerContents +
                     "\n\n" +
                     e);
         }
@@ -753,19 +761,14 @@ testCases(
 	 * being validated.
 	 */
 	function testRemoteSchemas() {
-	    // A temporary testing object.
-	    var concordia;
-	    
 	    // Setup the XMLHttpRequest object.
 	    XMLHttpRequest.prototype.remote = {};
 	    
 	    // Test with an invalid status.
 	    XMLHttpRequest.prototype.remote.status = 404;
 	    try {
-    	    concordia = 
-    	        new Concordia(
-    	            getContents(
-    	                getFile("definition/reference/base_local.json")));
+	        new Concordia(
+	            getContents(getFile("definition/reference/base_local.json")));
     	    
     	    self.fail(
     	        "A remote schema could not be retrieved, but the Concordia " +
@@ -785,10 +788,8 @@ testCases(
 	    XMLHttpRequest.prototype.remote.status = 200;
 	    XMLHttpRequest.prototype.remote.responseText = null;
         try {
-            concordia = 
-                new Concordia(
-                    getContents(
-                        getFile("definition/reference/base_local.json")));
+            new Concordia(
+                getContents(getFile("definition/reference/base_local.json")));
             
             self.fail(
                 "A remote schema had null returned, but the Concordia " +
@@ -807,10 +808,8 @@ testCases(
 	    // Test with an empty response.
         XMLHttpRequest.prototype.remote.responseText = "";
         try {
-            concordia = 
-                new Concordia(
-                    getContents(
-                        getFile("definition/reference/base_local.json")));
+            new Concordia(
+                getContents(getFile("definition/reference/base_local.json")));
             
             self.fail(
                 "A remote schema had nothing returned, but the Concordia " +
@@ -829,10 +828,8 @@ testCases(
 	    // Test with a non-JSON response.
         XMLHttpRequest.prototype.remote.responseText = "Not JSON";
         try {
-            concordia = 
-                new Concordia(
-                    getContents(
-                        getFile("definition/reference/base_local.json")));
+            new Concordia(
+                getContents(getFile("definition/reference/base_local.json")));
             
             self.fail(
                 "A remote schema had nothing returned, but the Concordia " +
@@ -851,11 +848,9 @@ testCases(
         // Test with a valid schema and a valid remote schema.
         XMLHttpRequest.prototype.remote.responseText =
             getContents(getFile("definition/reference/base_remote.json"));
-        try {
-            concordia = 
-                new Concordia(
-                    getContents(
-                        getFile("definition/reference/base_local.json")));
+        try { 
+            new Concordia(
+                getContents(getFile("definition/reference/base_local.json")));
         }
         catch(e) {
             self.fail(
@@ -869,11 +864,9 @@ testCases(
         XMLHttpRequest.prototype.remote.responseText =
             getContents(getFile("definition/reference/base_remote.json"));
         try {
-            concordia = 
-                new Concordia(
-                    getContents(
-                        getFile(
-                            "definition/reference/object_sub_local.json")));
+            new Concordia(
+                getContents(
+                    getFile("definition/reference/object_sub_local.json")));
         }
         catch(e) {
             self.fail(
@@ -888,11 +881,9 @@ testCases(
             getContents(
                 getFile("definition/reference/object_extend_remote.json"));
         try {
-            concordia = 
-                new Concordia(
-                    getContents(
-                        getFile(
-                            "definition/reference/object_extend_local.json")));
+            new Concordia(
+                getContents(
+                    getFile("definition/reference/object_extend_local.json")));
         }
         catch(e) {
             self.fail(
@@ -909,19 +900,17 @@ testCases(
                 getFile(
                     "definition/reference/object_extend_remote_duplicate_name.json"));
         try {
-            concordia = 
-                new Concordia(
-                    getContents(
-                        getFile(
-                            "definition/reference/object_extend_local.json")));
-            
+            new Concordia(
+                getContents(
+                    getFile("definition/reference/object_extend_local.json")));
+        
             self.fail(
                 "A remote schema had an identical name to the schema " +
                     "extending it, but the Concordia object was built " +
                     "nevertheless.");
         }
         catch(e) {
-            if(e.toString().indexOf("identical name") === -1) {
+            if(e.toString().indexOf("defined multiple times") === -1) {
                 self.fail(
                     "An exception was thrown as expected due to the remote " +
                         "schema having an identical name as the local " +
@@ -937,12 +926,10 @@ testCases(
             getContents(
                 getFile(
                     "definition/reference/object_extend_remote_not_object.json"));
-        try {
-            concordia = 
-                new Concordia(
-                    getContents(
-                        getFile(
-                            "definition/reference/object_extend_local.json")));
+        try { 
+            new Concordia(
+                getContents(
+                    getFile("definition/reference/object_extend_local.json")));
             
             self.fail(
                 "A remote schema was an array while the local schema was " +
@@ -965,12 +952,10 @@ testCases(
         XMLHttpRequest.prototype.remote.responseText =
             getContents(
                 getFile("definition/reference/base_remote.json"));
-        try {
-            concordia = 
-                new Concordia(
-                    getContents(
-                        getFile(
-                            "definition/reference/array_const_length.json")));
+        try { 
+            new Concordia(
+                getContents(
+                    getFile("definition/reference/array_const_length.json")));
         }
         catch(e) {
             self.fail(
@@ -985,12 +970,10 @@ testCases(
         XMLHttpRequest.prototype.remote.responseText =
             getContents(
                 getFile("definition/reference/base_remote.json"));
-        try {
-            concordia = 
-                new Concordia(
-                    getContents(
-                        getFile(
-                            "definition/reference/array_const_type.json")));
+        try { 
+            new Concordia(
+                getContents(
+                    getFile("definition/reference/array_const_type.json")));
         }
         catch(e) {
             self.fail(

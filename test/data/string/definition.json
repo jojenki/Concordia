@@ -1,6 +1,6 @@
 {
     "type":"object",
-    "schema":[
+    "fields":[
         {
             "name":"string",
             "type":"string"

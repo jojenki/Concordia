@@ -1,6 +1,6 @@
 {
     "type":"array",
-    "schema":[
+    "constLength":[
         {
             "type":"boolean"
         },
@@ -12,11 +12,11 @@
         },
         {
             "type":"object",
-            "schema":[]
+            "fields":[]
         },
         {
             "type":"array",
-            "schema":[]
+            "constLength":[]
         }
     ]
 }

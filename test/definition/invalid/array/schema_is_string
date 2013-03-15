@@ -1,4 +1,4 @@
 {
     "type":"array",
-    "schema":"Hello, world!"
+    "constType":"Hello, world!"
 }

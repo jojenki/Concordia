@@ -1,7 +1,7 @@
 {
     "type":"array",
-    "schema":{
+    "constType":{
         "type":"object",
-        "schema":[]
+        "fields":[]
     }
 }
