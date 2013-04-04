@@ -6,7 +6,7 @@
             "doc":"Constant-type array with a referenced schema.",
             "type":"array",
             "constType":{
-                "$ref":"http://localhost/"
+                "$ref":"http://localhost:60000/"
             }
         },
         {
@@ -14,7 +14,7 @@
             "type":"array",
             "constLength":[
                 {
-                    "$ref":"http://localhost/"
+                    "$ref":"http://localhost:60000/"
                 }
             ]
         },
@@ -27,7 +27,7 @@
                     "type":"boolean"
                 },
                 {
-                    "$ref":"http://localhost/"
+                    "$ref":"http://localhost:60000/"
                 }
             ]
         },
@@ -37,7 +37,7 @@
             "fields":[
                 {
                     "name":"object",
-                    "$ref":"http://localhost/"
+                    "$ref":"http://localhost:60000/"
                 }
             ]
         }

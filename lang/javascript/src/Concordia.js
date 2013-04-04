@@ -1297,7 +1297,8 @@ function Concordia(schema) {
         function validateSchema(obj) {
             var type = obj[KEYWORD_TYPE]
               , typeType
-              , optionalType = typeof obj[KEYWORD_OPTIONAL];
+              , optional = obj[KEYWORD_OPTIONAL]
+              , optionalType = typeof optional;
             
             if (type === null) {
                 throw "The root object's '" + 
@@ -1326,7 +1327,7 @@ function Concordia(schema) {
                         JSON.stringify(obj);
             }
             
-            if (optionalType !== "undefined") {
+            if ((optionalType !== "undefined") && optional) {
                 throw "The 'optional' field is not allowed at the root of " +
                         "the definition.";
             }

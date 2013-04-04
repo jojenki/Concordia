@@ -3,7 +3,7 @@
     "fields":[
         {
             "name":"subObject",
-            "$ref":"http://localhost/"
+            "$ref":"http://localhost:60000/"
         }
     ]
 }

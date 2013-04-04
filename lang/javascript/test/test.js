@@ -663,12 +663,6 @@ testCases(
 			"data/const_type_array_array/invalid/",
 			"data/const_type_array_array/valid/");
 		
-		// Check the documentation, "doc", tag.
-		checkData(
-			"data/doc/definition.json",
-			null,
-			null);
-		
 		// Check the "optional" tag.
 		checkData(
 			"data/optional/definition.json",
@@ -985,7 +979,7 @@ testCases(
         
         // Use a set of valid schemas to test valid and invalid data.
         checkDataReference(
-            "data/reference/local.json",
+            "data/reference/definition.json",
             "data/reference/referenced.json",
             "data/reference/invalid/",
             "data/reference/valid/");

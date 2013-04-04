@@ -2,7 +2,7 @@
     "type":"object",
     "fields":[
         {
-            "$ref":"http://localhost/"
+            "$ref":"http://localhost:60000/"
         }
     ]
 }

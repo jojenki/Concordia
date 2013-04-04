@@ -2,10 +2,10 @@
     "type":"array",
     "constLength":[
         {
-            "$ref":"http://localhost/"
+            "$ref":"http://localhost:60000/"
         },
         {
-            "$ref":"http://localhost/"
+            "$ref":"http://localhost:60000/"
         }
     ]
 }

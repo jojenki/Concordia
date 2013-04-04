@@ -4,7 +4,7 @@
         {
             "name":"optional",
             "type":"array",
-            "constLength":[]
+            "constLength":[],
             "optional":[]
         }
     ]

@@ -1,6 +1,6 @@
 {
     "type":"array",
     "constType":{
-        "$ref":"http://localhost/"
+        "$ref":"http://localhost:60000/"
     }
 }
