@@ -7,6 +7,11 @@ import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -44,6 +49,11 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 	@JsonSubTypes.Type(value = StringSchema.class, name = StringSchema.TYPE_ID),
 	@JsonSubTypes.Type(value = ObjectSchema.class, name = ObjectSchema.TYPE_ID),
 	@JsonSubTypes.Type(value = ArraySchema.class, name = ArraySchema.TYPE_ID) })
+@JsonAutoDetect(
+	fieldVisibility = Visibility.DEFAULT,
+	getterVisibility = Visibility.NONE,
+	setterVisibility = Visibility.NONE,
+	creatorVisibility = Visibility.DEFAULT)
 public abstract class Schema {
 	/**
 	 * The JSON key used to define the type of the current schema.
@@ -63,22 +73,26 @@ public abstract class Schema {
 	 * The {@link #JSON_KEY_DOC} field with a default value of null.
 	 */
 	@JsonProperty(JSON_KEY_DOC)
+	@JsonInclude(Include.NON_DEFAULT)
 	private final String doc;
 	/**
 	 * The {@link #JSON_KEY_OPTIONAL} field with a default value of false.
 	 */
 	@JsonProperty(JSON_KEY_OPTIONAL)
+	@JsonInclude(Include.NON_DEFAULT)
 	private final boolean optional;
 
 	/**
 	 * The name for this field if it is part of an object.
 	 */
 	@JsonProperty(ObjectSchema.JSON_KEY_NAME)
+	@JsonInclude(Include.NON_DEFAULT)
 	private final String name;
 
 	/**
 	 * The other fields that were given but are not part of Concordia proper.
 	 */
+	@JsonIgnore
 	private final Map<String, Object> others = new HashMap<String, Object>();
 	
 	/**

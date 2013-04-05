@@ -20,7 +20,9 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * <p>
@@ -33,6 +35,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
  *
  * @author John Jenkins
  */
+@JsonSerialize(using = ConcordiaSerializer.class, as=ObjectNode.class)
 public class Concordia {
 	/**
 	 * The internal reader that converts schemas to {@link Schema} objects.
