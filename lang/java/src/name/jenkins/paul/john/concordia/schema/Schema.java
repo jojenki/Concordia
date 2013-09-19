@@ -45,10 +45,18 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 	@JsonSubTypes.Type(
 		value = BooleanSchema.class,
 		name = BooleanSchema.TYPE_ID),
-	@JsonSubTypes.Type(value = NumberSchema.class, name = NumberSchema.TYPE_ID),
-	@JsonSubTypes.Type(value = StringSchema.class, name = StringSchema.TYPE_ID),
-	@JsonSubTypes.Type(value = ObjectSchema.class, name = ObjectSchema.TYPE_ID),
-	@JsonSubTypes.Type(value = ArraySchema.class, name = ArraySchema.TYPE_ID) })
+	@JsonSubTypes.Type(
+		value = NumberSchema.class,
+		name = NumberSchema.TYPE_ID),
+	@JsonSubTypes.Type(
+		value = StringSchema.class,
+		name = StringSchema.TYPE_ID),
+	@JsonSubTypes.Type(
+		value = ObjectSchema.class,
+		name = ObjectSchema.TYPE_ID),
+	@JsonSubTypes.Type(
+		value = ArraySchema.class,
+		name = ArraySchema.TYPE_ID) })
 @JsonAutoDetect(
 	fieldVisibility = Visibility.DEFAULT,
 	getterVisibility = Visibility.NONE,

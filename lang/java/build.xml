@@ -9,7 +9,7 @@
 	<property name="lib" location="lib"/>
     <property name="src" location="src"/>
     <property name="test" location="test"/>
-    <property name="version" value="0.3"/>
+    <property name="version" value="0.4"/>
 
 	<!-- Create the list of necessary libraries for compiling. -->
 	<fileset id="dependencies.compile" dir="${lib}">
@@ -63,7 +63,7 @@
 			<classpath refid="classpath.test"/>
 			<formatter type="plain" usefile="false"/>
 			<batchtest>
-				<fileset dir="test">
+				<fileset dir="${test}">
 					<include name="**"/>
 				</fileset>
 			</batchtest>
@@ -72,6 +72,10 @@
 	
 	<!-- Target to build the JavaDoc. -->
 	<target name="javadoc" description="Creates the documentation.">
+        <echo message="----------------------------------------"/>
+        <echo message="- Building the Java Module's JavaDoc   -"/>
+        <echo message="----------------------------------------"/>
+		
 		<mkdir dir="${doc}"/>
 		<javadoc destdir="${doc}" additionalparam="-quiet">
 	        <fileset dir="${src}">
@@ -89,19 +93,22 @@
 
 		<!-- Create the dist directory. -->
 		<mkdir dir="${dist}"/>
-		<!-- Create the JAR file. -->
+		
+		<!-- Create the library JAR file. -->
 		<jar destfile="${dist}/${ant.project.name}-${version}.jar">
 			<!-- Include the source. -->
 		    <fileset dir="${build}/classes"/>
-            
-            <!-- Include the associated libraries. -->
-            <zipgroupfileset dir="${lib}" includes="*.jar"/>
-
-			<!-- Include the JavaDoc. -->
-		    <fileset dir="${doc}">
-		    	<include name="**"/>
-		    </fileset>
 	    </jar>
+
+        <!-- Create the source JAR. -->
+        <jar destfile="${dist}/${ant.project.name}-${version}-sources.jar">
+            <fileset dir="${src}" />
+        </jar>
+
+        <!-- Create the JavaDoc JAR. -->
+        <jar destfile="${dist}/${ant.project.name}-${version}-javadoc.jar">
+            <fileset dir="${doc}" />
+        </jar>
 	</target>
 
 	<!-- Cleans everything by deleting the "dist" folder. -->
