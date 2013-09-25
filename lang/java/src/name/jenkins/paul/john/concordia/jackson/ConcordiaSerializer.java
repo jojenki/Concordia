@@ -1,7 +1,8 @@
-package name.jenkins.paul.john.concordia;
+package name.jenkins.paul.john.concordia.jackson;
 
 import java.io.IOException;
 
+import name.jenkins.paul.john.concordia.Concordia;
 import name.jenkins.paul.john.concordia.schema.Schema;
 
 import com.fasterxml.jackson.core.JsonGenerator;

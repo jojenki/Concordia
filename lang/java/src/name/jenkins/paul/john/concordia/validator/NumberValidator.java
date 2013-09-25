@@ -20,7 +20,8 @@ public final class NumberValidator
 	@Override
 	public void validate(
 		final NumberSchema schema,
-		final ValidationController controller) throws ConcordiaException {
+		final ValidationController controller)
+		throws ConcordiaException {
 
 		// There are no number-specific schema requirements.
 	}
@@ -32,7 +33,8 @@ public final class NumberValidator
 	public void validate(
 		final NumberSchema schema,
 		final JsonNode data,
-		final ValidationController controller) throws ConcordiaException {
+		final ValidationController controller)
+		throws ConcordiaException {
 
 		// If it is not a number,
 		if(!(data instanceof NumericNode)) {

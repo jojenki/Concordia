@@ -70,8 +70,7 @@
     </target>
 	
 	<!-- Target that runs the dist script and then minifies the code. -->
-	<target name="dist-min">
-		<antcall target="dist" />
+	<target depends="dist" name="dist-min">
         <jsmin destdir="dist" force="true" suffix="true">
             <fileset dir="dist" includes="**/*.js" />
         </jsmin>

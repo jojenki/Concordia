@@ -1,25 +1,28 @@
 package name.jenkins.paul.john.concordia;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
 import name.jenkins.paul.john.concordia.exception.ConcordiaException;
+import name.jenkins.paul.john.concordia.jackson.ConcordiaDeserializer;
+import name.jenkins.paul.john.concordia.jackson.ConcordiaSerializer;
 import name.jenkins.paul.john.concordia.jackson.StrictBooleanDeserializer;
 import name.jenkins.paul.john.concordia.jackson.StrictStringDeserializer;
 import name.jenkins.paul.john.concordia.schema.ArraySchema;
 import name.jenkins.paul.john.concordia.schema.ObjectSchema;
 import name.jenkins.paul.john.concordia.schema.ReferenceSchema;
 import name.jenkins.paul.john.concordia.schema.Schema;
-import name.jenkins.paul.john.concordia.validator.DataValidator;
-import name.jenkins.paul.john.concordia.validator.SchemaValidator;
 import name.jenkins.paul.john.concordia.validator.ValidationController;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -35,7 +38,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  *
  * @author John Jenkins
  */
-@JsonSerialize(using = ConcordiaSerializer.class, as=ObjectNode.class)
+@JsonSerialize(using = ConcordiaSerializer.class, as = ObjectNode.class)
+@JsonDeserialize(using = ConcordiaDeserializer.class)
 public class Concordia {
 	/**
 	 * The internal reader that converts schemas to {@link Schema} objects.
@@ -69,6 +73,13 @@ public class Concordia {
 	}
 
 	/**
+	 * The key to use when injecting a {@link ValidationController} into an
+	 * {@link ObjectMapper}.
+	 */
+	public static final String JACKSON_INJECTABLE_VALIDATION_CONTROLLER =
+		"_concordia_injectable_validation_controller_";
+
+	/**
 	 * The schema for this object.
 	 */
 	private final Schema schema;
@@ -76,42 +87,137 @@ public class Concordia {
 	 * The validation controller for building this object.
 	 */
 	private ValidationController controller;
-
+	
 	/**
-	 * Creates a new Concordia object after validating it.
+	 * Creates a new Concordia object and validates it. It will use the default
+	 * validator of {@link ValidationController#BASIC_CONTROLLER}.
+	 * 
+	 * @param schema
+	 *        The schema to validate and use to create this object.
+	 * 
+	 * @throws IllegalArgumentException
+	 *         The schema is null.
+	 * 
+	 * @throws IOException
+	 *         The schema could not be read.
+	 * 
+	 * @throws JsonParseException
+	 *         The schema was not valid JSON.
+	 * 
+	 * @throws ConcordiaException
+	 *         The schema is invalid.
+	 */
+	public Concordia(
+		final String schema)
+		throws 
+			IllegalArgumentException,
+			IOException,
+			JsonParseException,
+			ConcordiaException {
+		
+		this(new ByteArrayInputStream(schema.getBytes()), null);
+	}
+	
+	/**
+	 * Creates a new Concordia object and validates it.
 	 * 
 	 * @param schema
 	 *        The schema to validate and use to create this object.
 	 *        
 	 * @param controller
-	 *        The validation controller which should include all custom
-	 *        {@link SchemaValidator}s and {@link DataValidator}s to use.
-	 * 
-	 * @throws ConcordiaException
-	 *         The schema is invalid.
+	 *        A custom validation controller or null, in which case the default
+	 *        controller will be used,
+	 *        {@link ValidationController#BASIC_CONTROLLER}.
 	 *         
 	 * @throws IllegalArgumentException
-	 *         The schema and/or controller are null.
+	 *         The schema is null.
+	 * 
+	 * @throws IOException
+	 *         The schema could not be read.
 	 * 
 	 * @throws JsonParseException
 	 *         The schema was not valid JSON.
 	 * 
+	 * @throws ConcordiaException
+	 *         The schema is invalid.
+	 */
+	public Concordia(
+		final String schema,
+		final ValidationController controller)
+		throws 
+			IllegalArgumentException,
+			IOException,
+			JsonParseException,
+			ConcordiaException {
+		
+		this(new ByteArrayInputStream(schema.getBytes()), controller);
+	}
+	
+	/**
+	 * Creates a new Concordia object and validates it. It will use the default
+	 * validator of {@link ValidationController#BASIC_CONTROLLER}.
+	 * 
+	 * @param schema
+	 *        The schema to validate and use to create this object.
+	 * 
+	 * @throws IllegalArgumentException
+	 *         The schema is null.
+	 * 
 	 * @throws IOException
 	 *         The schema could not be read.
+	 * 
+	 * @throws JsonParseException
+	 *         The schema was not valid JSON.
+	 * 
+	 * @throws ConcordiaException
+	 *         The schema is invalid.
+	 */
+	public Concordia(
+		final InputStream schema)
+		throws 
+			IllegalArgumentException,
+			IOException,
+			JsonParseException,
+			ConcordiaException {
+		
+		this(schema, null);
+	}
+
+	/**
+	 * Creates a new Concordia object and validates it.
+	 * 
+	 * @param schema
+	 *        The schema to validate and use to create this object.
+	 *        
+	 * @param controller
+	 *        A custom validation controller or null, in which case the default
+	 *        controller will be used,
+	 *        {@link ValidationController#BASIC_CONTROLLER}.
+	 *         
+	 * @throws IllegalArgumentException
+	 *         The schema is null.
+	 * 
+	 * @throws IOException
+	 *         The schema could not be read.
+	 * 
+	 * @throws JsonParseException
+	 *         The schema was not valid JSON.
+	 * 
+	 * @throws ConcordiaException
+	 *         The schema is invalid.
 	 */
 	public Concordia(
 		final InputStream schema,
 		final ValidationController controller)
 		throws 
-			ConcordiaException,
 			IllegalArgumentException,
-			IOException {
+			IOException,
+			JsonParseException,
+			ConcordiaException {
 		
+		// Validate the schema.
 		if(schema == null) {
 			throw new IllegalArgumentException("The schema is null.");
-		}
-		if(controller == null) {
-			throw new IllegalArgumentException("The controller is null.");
 		}
 
 		// Process the JSON and create a Schema from it.
@@ -124,35 +230,79 @@ public class Concordia {
 					"The schema was malformed or invalid.",
 					e);
 		}
+
+		// If a controller was not given, fall back to the default one.
+		if(controller == null) {
+			this.controller = ValidationController.BASIC_CONTROLLER;
+		}
+		// Otherwise, use the given controller.
+		else {
+			this.controller = controller;
+		}
 		
-		// Save the controller.
-		this.controller = controller;
+		// Validate the schema using the controller.
+		setup();
+	}
+	
+	/**
+	 * Creates a new Concordia object and validates it.
+	 * 
+	 * @param parser
+	 *        A JsonParser that is pointing to the definition and can be read.
+	 * 
+	 * @param controller
+	 *        A custom validation controller or null, in which case the default
+	 *        controller will be used,
+	 *        {@link ValidationController#BASIC_CONTROLLER}.
+	 * 
+	 * @throws IllegalArgumentException
+	 *         The schema is null.
+	 * 
+	 * @throws IOException
+	 *         The schema could not be read.
+	 * 
+	 * @throws JsonParseException
+	 *         The schema was not valid JSON.
+	 * 
+	 * @throws ConcordiaException
+	 *         The schema is invalid.
+	 */
+	public Concordia(
+		final JsonParser parser,
+		final ValidationController controller)
+		throws 
+			IllegalArgumentException,
+			IOException,
+			JsonParseException,
+			ConcordiaException {
 
 		// Validate the schema.
-		controller.validate(this.schema);
-		
-		// Make sure the root is either an object or an array.
-		if( (! (this.schema instanceof ObjectSchema)) &&
-			(! (this.schema instanceof ArraySchema))) {
-			
+		if(parser == null) {
+			throw new IllegalArgumentException("The parser is null.");
+		}
+
+		// Process the JSON and create a Schema from it.
+		try {
+			this.schema = JSON_READER.readValue(parser);
+		}
+		catch(JsonMappingException e) {
 			throw
 				new ConcordiaException(
-					"The root type of this schema must either be '" +
-						ObjectSchema.TYPE_ID +
-						"' or '" +
-						ArraySchema.TYPE_ID +
-						"'.");
+					"The schema was malformed or invalid.",
+					e);
 		}
 		
-		// Make sure the root is not optional.
-		if(this.schema.isOptional()) {
-			throw
-				new ConcordiaException(
-					"The root of the schema cannot be optional.");
+		// If a controller was not given, fall back to the default one.
+		if(controller == null) {
+			this.controller = ValidationController.BASIC_CONTROLLER;
 		}
-		
-		// Update the controller on any child schemas.
-		updateController(this.schema.getSubSchemas(), controller);
+		// Otherwise, use the given controller.
+		else {
+			this.controller = controller;
+		}
+
+		// Validate the schema using the controller.
+		setup();
 	}
 
 	/**
@@ -232,6 +382,43 @@ public class Concordia {
 			return false;
 		}
 		return true;
+	}
+	
+	/**
+	 * Post-construction validation. This should be used in constructors after
+	 * the initial state of the machine has been setup. This will then validate
+	 * the schema using the validator and do any additional, necessary
+	 * validation and setup.
+	 * 
+	 * @throws ConcordiaException
+	 *         The schema is invalid.
+	 */
+	private void setup() throws ConcordiaException {
+		// Validate the schema.
+		this.controller.validate(this.schema);
+		
+		// Make sure the root is either an object or an array.
+		if( (! (this.schema instanceof ObjectSchema)) &&
+			(! (this.schema instanceof ArraySchema))) {
+			
+			throw
+				new ConcordiaException(
+					"The root type of this schema must either be '" +
+						ObjectSchema.TYPE_ID +
+						"' or '" +
+						ArraySchema.TYPE_ID +
+						"'.");
+		}
+		
+		// Make sure the root is not optional.
+		if(this.schema.isOptional()) {
+			throw
+				new ConcordiaException(
+					"The root of the schema cannot be optional.");
+		}
+		
+		// Update the controller on any child schemas.
+		updateController(this.schema.getSubSchemas(), controller);
 	}
 	
 	/**
