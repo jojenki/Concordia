@@ -29,4 +29,9 @@ Some languages have specific targets for that language.
 
 ##### JavaScript
 
-* `lint` runs the [http://www.javascriptlint.com/](JSON Lint) checker. Note: We recognize the need for code quality, but we do not fully adhere to everything the lint checker recommends. 
+* `lint` runs the [http://www.javascriptlint.com/](JSON Lint) checker. Note: We recognize the need for code quality, but we do not fully adhere to everything the lint checker recommends.
+
+##### Java
+
+* `javadoc` will build the JavaDoc JAR file.
+* `sources` will build the sources JAR file. 
