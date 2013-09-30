@@ -22,6 +22,11 @@ public class BooleanSchema extends Schema {
 	 * The field value for this type.
 	 */
 	public static final String TYPE_ID = "boolean";
+	
+	/**
+	 * An ID for this class for serialization purposes.
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * This is a private constructor that will be used by Jackson to build the

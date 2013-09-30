@@ -1,5 +1,6 @@
 package name.jenkins.paul.john.concordia.schema;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -62,7 +63,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 	getterVisibility = Visibility.NONE,
 	setterVisibility = Visibility.NONE,
 	creatorVisibility = Visibility.DEFAULT)
-public abstract class Schema {
+public abstract class Schema implements Serializable {
 	/**
 	 * The JSON key used to define the type of the current schema.
 	 */
@@ -76,6 +77,11 @@ public abstract class Schema {
 	 * The JSON key used to define whether or not a schema is optional.
 	 */
 	public static final String JSON_KEY_OPTIONAL = "optional";
+
+	/**
+	 * An ID for this class for serialization purposes.
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * The {@link #JSON_KEY_DOC} field with a default value of null.

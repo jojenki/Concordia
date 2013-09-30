@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
  * internal {@link Schema}.
  * </p>
  *
- * @author jojenki
+ * @author John Jenkins
  */
 public class ConcordiaSerializer extends JsonSerializer<Concordia> {
 	/**

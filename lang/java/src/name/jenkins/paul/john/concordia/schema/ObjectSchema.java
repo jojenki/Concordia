@@ -35,6 +35,11 @@ public class ObjectSchema extends Schema {
 	 * The JSON key for the name of a field.
 	 */
 	public static final String JSON_KEY_NAME = "name";
+	
+	/**
+	 * An ID for this class for serialization purposes.
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * The list of fields for this object.

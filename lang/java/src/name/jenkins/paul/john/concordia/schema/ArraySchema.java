@@ -37,6 +37,11 @@ public class ArraySchema extends Schema {
 	 * The JSON key for the sub-schema for a constant-type array.
 	 */
 	public static final String JSON_KEY_CONST_LENGTH = "constLength";
+	
+	/**
+	 * An ID for this class for serialization purposes.
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * The {@link Schema} for this array if it is a constant-type array.

@@ -3,11 +3,11 @@ package name.jenkins.paul.john.concordia;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.List;
 
 import name.jenkins.paul.john.concordia.exception.ConcordiaException;
 import name.jenkins.paul.john.concordia.jackson.ConcordiaDeserializer;
-import name.jenkins.paul.john.concordia.jackson.ConcordiaSerializer;
 import name.jenkins.paul.john.concordia.jackson.StrictBooleanDeserializer;
 import name.jenkins.paul.john.concordia.jackson.StrictStringDeserializer;
 import name.jenkins.paul.john.concordia.schema.ArraySchema;
@@ -16,6 +16,7 @@ import name.jenkins.paul.john.concordia.schema.ReferenceSchema;
 import name.jenkins.paul.john.concordia.schema.Schema;
 import name.jenkins.paul.john.concordia.validator.ValidationController;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -23,9 +24,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * <p>
@@ -38,9 +37,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  *
  * @author John Jenkins
  */
-@JsonSerialize(using = ConcordiaSerializer.class, as = ObjectNode.class)
 @JsonDeserialize(using = ConcordiaDeserializer.class)
-public class Concordia {
+public class Concordia implements Serializable {
 	/**
 	 * The internal reader that converts schemas to {@link Schema} objects.
 	 */
@@ -78,6 +76,11 @@ public class Concordia {
 	 */
 	public static final String JACKSON_INJECTABLE_VALIDATION_CONTROLLER =
 		"_concordia_injectable_validation_controller_";
+	
+	/**
+	 * A default ID for this class for serialization.
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * The schema for this object.
@@ -320,6 +323,7 @@ public class Concordia {
 	 * 
 	 * @return The root {@link Schema}.
 	 */
+	@JsonValue
 	public Schema getSchema() {
 		return schema;
 	}

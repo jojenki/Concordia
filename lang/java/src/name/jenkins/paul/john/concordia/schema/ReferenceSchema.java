@@ -34,6 +34,11 @@ public class ReferenceSchema extends Schema {
 	 * The field value for this type.
 	 */
 	public static final String TYPE_ID = "reference";
+	
+	/**
+	 * An ID for this class for serialization purposes.
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * The URL for the referenced schema.

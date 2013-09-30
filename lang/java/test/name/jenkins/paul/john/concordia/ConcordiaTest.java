@@ -718,7 +718,7 @@ public class ConcordiaTest {
 				schema
 					.validateData(
 						JSON_FACTORY
-							.createJsonParser(dataFile)
+							.createParser(dataFile)
 								.readValueAs(JsonNode.class));
 				
 				// If the data passed validation but it should have been
@@ -893,7 +893,7 @@ public class ConcordiaTest {
 			schema
 				.validateData(
 					JSON_FACTORY
-						.createJsonParser(new File(dataFile))
+						.createParser(new File(dataFile))
 							.readValueAs(JsonNode.class));
 			
 			// If the data passed validation but it should have been invalid,
