@@ -7,6 +7,8 @@ import java.util.List;
 import name.jenkins.paul.john.concordia.exception.ConcordiaException;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -22,6 +24,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * 
  * @author John Jenkins
  */
+@JsonInclude(Include.NON_NULL)
 public class ArraySchema extends Schema {
 	/**
 	 * The field value for this type.

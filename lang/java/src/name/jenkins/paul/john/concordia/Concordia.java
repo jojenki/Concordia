@@ -157,6 +157,71 @@ public class Concordia implements Serializable {
 	}
 	
 	/**
+	 * Creates a new Concordia object and validates it.
+	 * 
+	 * @param schema
+	 *        The schema to validate and use to create this object.
+	 * 
+	 * @throws IllegalArgumentException
+	 *         The schema is null.
+	 * 
+	 * @throws ConcordiaException
+	 *         The schema is invalid.
+	 */
+	public Concordia(
+		final Schema schema)
+		throws IllegalArgumentException, ConcordiaException {
+		
+		if(schema == null) {
+			throw new IllegalArgumentException("The schema is null.");
+		}
+		else {
+			this.schema = schema;
+		}
+		
+		this.controller = ValidationController.BASIC_CONTROLLER;
+		
+		setup();
+	}
+	
+	/**
+	 * Creates a new Concordia object and validates it.
+	 * 
+	 * @param schema
+	 *        The schema to validate and use to create this object.
+	 * 
+	 * @param controller
+	 *        The custom validation controller to use to validate the schema.
+	 * 
+	 * @throws IllegalArgumentException
+	 *         The schema or controller are null.
+	 * 
+	 * @throws ConcordiaException
+	 *         The schema is invalid.
+	 */
+	public Concordia(
+		final Schema schema,
+		final ValidationController controller)
+		throws IllegalArgumentException, ConcordiaException {
+		
+		if(schema == null) {
+			throw new IllegalArgumentException("The schema is null.");
+		}
+		else {
+			this.schema = schema;
+		}
+		
+		if(controller == null) {
+			throw new IllegalArgumentException("The controller is null.");
+		}
+		else {
+			this.controller = controller;
+		}
+		
+		setup();
+	}
+	
+	/**
 	 * Creates a new Concordia object and validates it. It will use the default
 	 * validator of {@link ValidationController#BASIC_CONTROLLER}.
 	 * 

@@ -9,7 +9,7 @@
 	<property name="lib" location="lib"/>
     <property name="src" location="src"/>
     <property name="test" location="test"/>
-    <property name="version" value="1.1"/>
+    <property name="version" value="1.1.1"/>
 
 	<!-- Create the list of necessary libraries for compiling. -->
 	<fileset id="dependencies.compile" dir="${lib}">
@@ -94,7 +94,7 @@
     </target>
     
     <!-- Target to build the sources JAR. -->
-    <target name="sources" description="Creates the documentation.">
+    <target name="sources" description="Creates the sources JAR.">
         <echo message="----------------------------------------"/>
         <echo message="- Building the Java Module's Sources   -"/>
         <echo message="----------------------------------------"/>
