@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <!-- The build file for the JavaScript version of Concordia. -->
 <project name="ConcoridaJS" basedir="." default="dist-min">
+    <!-- Define the properties. -->
+    <property name="version" value="1.2"/>
+	
 	<!-- Rhino unit tester for JavaScript. -->
     <scriptdef
             name="rhinounit"
@@ -65,7 +68,8 @@
     	
     	<mkdir dir="dist" />
     	<copy toDir="dist">
-    		<fileset dir="src" includes="**" />
+    		<fileset dir="src" />
+    		<globmapper from="*.js" to="*.${version}.js" />
     	</copy>
     </target>
 	

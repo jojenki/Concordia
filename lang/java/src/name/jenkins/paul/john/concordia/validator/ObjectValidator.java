@@ -17,13 +17,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * <p>
  * The required validator for object schemas.
  * </p>
- * 
+ *
  * @author John Jenkins
  */
 public class ObjectValidator
-	implements
-	SchemaValidator<ObjectSchema>,
-	DataValidator<ObjectSchema> {
+	implements SchemaValidator<ObjectSchema>, DataValidator<ObjectSchema> {
 
 	/**
 	 * Validates that a schema for an object is valid.
@@ -61,33 +59,20 @@ public class ObjectValidator
 			String name = field.getName();
 			// The name may be omitted if a reference was given.
 			if(name == null) {
-				// If the field is a reference type, validate that
+				// If the field is a reference type, validate that it also
+			    // defines an object and that the object shares no field names
+			    // with this object.
 				if(field instanceof ReferenceSchema) {
-					// Cast the referenced field.
-					ReferenceSchema referencedField = (ReferenceSchema) field;
-
-					// Get the sub-schema's root.
-					Schema subSchemaRoot =
-						referencedField.getConcordia().getSchema();
-
-					// The sub-schema must define an object for its root.
-					if(!(subSchemaRoot instanceof ObjectSchema)) {
-						throw new ConcordiaException(
-							"The sub-schema's root is not an '" +
-								ObjectSchema.JSON_KEY_TYPE +
-								"' type: " +
-								subSchemaRoot.toString());
-					}
-
 					// Get the names for this field.
-					for(String refFieldName : referencedField.getFieldNames()) {
+					for(String refFieldName :
+					    ((ReferenceSchema) field).getFieldNames()) {
+
 						if(!names.add(refFieldName)) {
 							throw new ConcordiaException(
 								"Multiple fields have the same name, '" +
 									name +
 									"': " +
 									field.toString());
-
 						}
 					}
 				}
@@ -137,13 +122,13 @@ public class ObjectValidator
 			// Otherwise, it is invalid.
 			else {
 				throw new ConcordiaException(
-					"The data was not a string value: " + data.toString());
+					"The data was not an object value: " + data.toString());
 			}
 		}
 
 		// Get the data object node.
 		ObjectNode dataObject = (ObjectNode) data;
-		
+
 		// For each of the fields in the definition, validate them.
 		for(Schema fieldDefinition : schema.getFields()) {
 			// If it doesn't have a field name, then it must be a referenced
@@ -156,7 +141,7 @@ public class ObjectValidator
 				// Validate the field.
 				controller
 					.validate(
-						fieldDefinition, 
+						fieldDefinition,
 						dataObject.get(fieldDefinition.getName()));
 			}
 		}

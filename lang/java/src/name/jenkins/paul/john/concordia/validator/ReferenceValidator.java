@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.node.NullNode;
  * <p>
  * The required validator for referenced schemas.
  * </p>
- * 
+ *
  * @author John Jenkins
  */
 public class ReferenceValidator
@@ -26,7 +26,7 @@ public class ReferenceValidator
 		final ReferenceSchema schema,
 		final ValidationController controller)
 		throws ConcordiaException {
-		
+
 		// There is no additional validation for referenced schemas.
 	}
 
@@ -39,7 +39,7 @@ public class ReferenceValidator
 		final JsonNode data,
 		final ValidationController controller)
 		throws ConcordiaException {
-		
+
 		// First, verify that the data exists.
 		if((data == null) || (data instanceof NullNode)) {
 			if(schema.isOptional()) {
@@ -51,8 +51,8 @@ public class ReferenceValidator
 						schema.toString());
 			}
 		}
-		
+
 		// Then, pass the validation off to the referenced schema.
-		controller.validate(schema.getConcordia().getSchema(), data);
+		controller.validate(schema.getSchema(), data);
 	}
 }
