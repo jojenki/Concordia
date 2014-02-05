@@ -1348,7 +1348,7 @@ function Concordia(schema) {
          */
         function validateDataNoCheck(data) {
             // Validate the data using this object's sub-schema.
-            validateDataInternal(this[KEYWORD_SCHEMA], data);
+            validateDataInternal(concordia[KEYWORD_SCHEMA], data);
             
             // Returns the data just to conform to the function it is
             // shadowing, {@link #validateData(data)}.
@@ -1379,7 +1379,7 @@ function Concordia(schema) {
             // Use the internal function to validate that 
             validateSchemaExtender(
                 original[KEYWORD_SCHEMA],
-                this[KEYWORD_SCHEMA]);
+                concordia[KEYWORD_SCHEMA]);
         };
         
         /**
@@ -1406,7 +1406,7 @@ function Concordia(schema) {
             if ((jsonDataType === JS_TYPE_ARRAY) ||
                 (jsonDataType === JS_TYPE_OBJECT)) {
                 
-                validateDataInternal(this[KEYWORD_SCHEMA], jsonData);
+                validateDataInternal(concordia[KEYWORD_SCHEMA], jsonData);
             }
             else {
                 throw "The data must either be a JSON object or a JSON " +
