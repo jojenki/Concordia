@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import name.jenkins.paul.john.concordia.exception.ConcordiaException;
 
@@ -22,6 +23,76 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author John Jenkins
  */
 public class ObjectSchema extends Schema {
+    /**
+     * <p>
+     * A builder specifically for reference schemas.
+     * </p>
+     *
+     * @author John Jenkins
+     */
+    public static class Builder extends Schema.Builder {
+        /**
+         * The list of fields in this object.
+         */
+        private List<Schema> fields;
+
+        /**
+         * Creates a builder based off of an existing schema.
+         *
+         * @param original
+         *        The original schema to base the fields in this builder off
+         *        of.
+         */
+        public Builder(final ObjectSchema original) {
+            super(original);
+
+            fields = new ArrayList<Schema>(original.fields);
+        }
+
+        /**
+         * Returns the currently set list of fields. The internal list is
+         * backed by the response value, so modifications to the returned list
+         * will be reflected in this builder.
+         *
+         * @return The currently set list of fields.
+         */
+        public List<Schema> getFields() {
+            return fields;
+        }
+
+        /**
+         * Sets the list of fields. There is no aggregation; this will replace
+         * the current list of fields. It will be a deep copy of the parameter,
+         * so modifying the parameterized list will have no effect on the
+         * internal list of fields.
+         *
+         * @param fields
+         *        The desired list of fields.
+         *
+         * @return Returns this to facilitate chaining.
+         */
+        public ObjectSchema.Builder setReference(final List<Schema> fields) {
+            this.fields = new ArrayList<Schema>(fields);
+
+            return this;
+        }
+
+        /*
+         * (non-Javadoc)
+         * @see name.jenkins.paul.john.concordia.schema.Schema.Builder#build()
+         */
+        @Override
+        public ObjectSchema build() throws ConcordiaException {
+            return
+                new ObjectSchema(
+                    getDoc(),
+                    getOptional(),
+                    getName(),
+                    fields,
+                    getOthers());
+        }
+    }
+
 	/**
 	 * The field value for this type.
 	 */
@@ -46,17 +117,6 @@ public class ObjectSchema extends Schema {
 	 */
 	@JsonProperty(JSON_KEY_FIELDS)
 	private final List<Schema> fields = new ArrayList<Schema>();
-
-	/**
-	 * This is a private constructor that will be used by Jackson to build the
-	 * object with their defaults. It will then modify those defaults if they
-	 * were provided in the JSON. This should not be used anywhere else.
-	 *
-	 * @see #ObjectSchema(String, boolean, String, List)
-	 */
-	private ObjectSchema() {
-		super(null, false, null);
-	}
 
 	/**
 	 * Creates a new object schema.
@@ -86,15 +146,46 @@ public class ObjectSchema extends Schema {
 		@JsonProperty(JSON_KEY_FIELDS) final List<Schema> fields)
 		throws ConcordiaException {
 
-		super(doc, optional, name);
-
-		if(fields == null) {
-			throw new ConcordiaException("The fields list is null.");
-		}
-		else {
-			this.fields.addAll(fields);
-		}
+		this(doc, optional, name, fields, null);
 	}
+
+    /**
+     * Creates a new object schema.
+     *
+     * @param doc
+     *        Optional documentation for this Schema.
+     *
+     * @param optional
+     *        Whether or not data for this Schema is optional.
+     *
+     * @param name
+     *        The name of this field, which is needed when constructing an
+     *        {@link ObjectSchema}.
+     *
+     * @param fields
+     *        The list of fields for this schema. If this is null, an empty
+     *        list is returned.
+     *
+     * @param others
+     *        Additional undefined fields that are being preserved.
+     */
+    protected ObjectSchema(
+        final String doc,
+        final boolean optional,
+        final String name,
+        final List<Schema> fields,
+        final Map<String, Object> others)
+        throws ConcordiaException {
+
+        super(doc, optional, name, others);
+
+        if(fields == null) {
+            throw new ConcordiaException("The fields list is null.");
+        }
+        else {
+            this.fields.addAll(fields);
+        }
+    }
 
 	/**
 	 * Returns the list of fields.
@@ -123,6 +214,15 @@ public class ObjectSchema extends Schema {
 	public List<Schema> getSubSchemas() {
 		return Collections.unmodifiableList(fields);
 	}
+
+    /*
+     * (non-Javadoc)
+     * @see name.jenkins.paul.john.concordia.schema.Schema#getBuilder()
+     */
+    @Override
+    public Schema.Builder getBuilder() {
+        return new ObjectSchema.Builder(this);
+    }
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()

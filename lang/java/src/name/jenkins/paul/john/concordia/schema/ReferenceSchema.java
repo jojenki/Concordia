@@ -5,12 +5,14 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import name.jenkins.paul.john.concordia.Concordia;
 import name.jenkins.paul.john.concordia.exception.ConcordiaException;
 import name.jenkins.paul.john.concordia.validator.ValidationController;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -27,6 +29,73 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author John Jenkins
  */
 public class ReferenceSchema extends Schema {
+    /**
+     * <p>
+     * A builder specifically for reference schemas.
+     * </p>
+     *
+     * @author John Jenkins
+     */
+    public static class Builder extends Schema.Builder {
+        /**
+         * The reference to the external schema.
+         */
+        private URL reference;
+
+        /**
+         * Creates a builder based off of an existing schema.
+         *
+         * @param original
+         *        The original schema to base the fields in this builder off
+         *        of.
+         */
+        public Builder(final ReferenceSchema original) {
+            super(original);
+
+            reference = original.reference;
+        }
+
+        /**
+         * Returns the currently set reference.
+         *
+         * @return The currently set reference.
+         */
+        public URL getReference() {
+            return reference;
+        }
+
+        /**
+         * Sets the reference. It is not evaluated until the schema is built.
+         *
+         * @param reference
+         *        The desired reference.
+         *
+         * @return Returns this to facilitate chaining.
+         *
+         * @see #build()
+         */
+        public ReferenceSchema.Builder setReference(final URL reference) {
+            this.reference = reference;
+
+            return this;
+        }
+
+        /*
+         * (non-Javadoc)
+         * @see name.jenkins.paul.john.concordia.schema.Schema.Builder#build()
+         */
+        @Override
+        public ReferenceSchema build() throws ConcordiaException {
+            return
+                new ReferenceSchema(
+                    getDoc(),
+                    getOptional(),
+                    getName(),
+                    reference,
+                    getOthers());
+        }
+    }
+
 	/**
 	 * The field value for this type.
 	 */
@@ -58,20 +127,8 @@ public class ReferenceSchema extends Schema {
 	 * The sub-schema that will be populated during validation based on the
 	 * {@link #reference}.
 	 */
-	@JsonProperty(JSON_KEY_DEFINITION)
-	@JsonInclude(Include.NON_NULL)
+	@JsonIgnore
 	private Schema subSchema = null;
-
-	/**
-	 * This is a private constructor that will be used by Jackson to build the
-	 * object with their defaults. It will then modify those defaults if they
-	 * were provided in the JSON. This should not be used anywhere else.
-	 *
-	 * @see #ReferenceSchema(String, boolean, String, URL)
-	 */
-	private ReferenceSchema() {
-		super(null, false, null);
-	}
 
 	/**
 	 * Creates a new referenced schema from the given URL.
@@ -93,20 +150,48 @@ public class ReferenceSchema extends Schema {
 	 *         The reference URL was invalid or the schema it referenced was
 	 *         invalid.
 	 */
+	@JsonCreator
 	public ReferenceSchema(
-		final String doc,
-		final boolean optional,
-		final String name,
-		final URL reference)
+        @JsonProperty(JSON_KEY_DOC) final String doc,
+        @JsonProperty(JSON_KEY_OPTIONAL) final boolean optional,
+        @JsonProperty(ObjectSchema.JSON_KEY_NAME) final String name,
+        @JsonProperty(JSON_KEY_REFERENCE) final URL reference)
 		throws ConcordiaException {
 
-		super(doc, optional, name);
+		this(doc, optional, name, reference, null);
+	}
 
-		if(reference == null) {
-			throw new ConcordiaException("The reference URL is null.");
-		}
+    /**
+     * Creates a new boolean schema.
+     *
+     * @param doc
+     *        Optional documentation for this Schema.
+     *
+     * @param optional
+     *        Whether or not data for this Schema is optional.
+     *
+     * @param name
+     *        The name of this field, which is needed when constructing an
+     *        {@link ObjectSchema}.
+     *
+     * @param others
+     *        Additional undefined fields that are being preserved.
+     */
+    protected ReferenceSchema(
+        final String doc,
+        final boolean optional,
+        final String name,
+        final URL reference,
+        final Map<String, Object> others)
+        throws ConcordiaException {
 
-		this.reference = reference;
+        super(doc, optional, name, others);
+
+        if(reference == null) {
+            throw new ConcordiaException("The reference URL is null.");
+        }
+
+        this.reference = reference;
         try {
             InputStream inputStream = reference.openStream();
             subSchema =
@@ -121,104 +206,7 @@ public class ReferenceSchema extends Schema {
                 "There was an error reading the schema.",
                 e);
         }
-	}
-
-    /**
-     * Creates a new referenced schema from the sub-schema.
-     *
-     * @param doc
-     *        Optional documentation for this Schema.
-     *
-     * @param optional
-     *        Whether or not data for this Schema is optional.
-     *
-     * @param name
-     *        The name of this field, which is needed when constructing an
-     *        {@link ObjectSchema}.
-     *
-     * @param subSchema
-     *        The schema that backs that backs this schema.
-     *
-     * @throws ConcordiaException
-     *         The sub-schema is null.
-     */
-	public ReferenceSchema(
-	    final String doc,
-	    final boolean optional,
-	    final String name,
-	    final Schema subSchema)
-	    throws ConcordiaException {
-
-	    super(doc, optional, name);
-
-	    if(subSchema == null) {
-            throw new ConcordiaException("The reference URL is null.");
-	    }
-
-	    reference = null;
-	    this.subSchema = subSchema;
-	}
-
-	/**
-	 * Recreates an existing ReferenceSchema.
-     *
-     * @param doc
-     *        Optional documentation for this Schema.
-     *
-     * @param optional
-     *        Whether or not data for this Schema is optional.
-     *
-     * @param name
-     *        The name of this field, which is needed when constructing an
-     *        {@link ObjectSchema}.
-     *
-     * @param reference
-     *        The reference to the external schema.
-     *
-     * @param subSchema
-     *        The schema that backs that backs this schema.
-     *
-     * @throws ConcordiaException
-     *         The reference URL was invalid (or the schema it referenced was
-     *         invalid) and the sub-schema was null.
-	 */
-	@JsonCreator
-	protected ReferenceSchema(
-        @JsonProperty(JSON_KEY_DOC) final String doc,
-        @JsonProperty(JSON_KEY_OPTIONAL) final boolean optional,
-        @JsonProperty(ObjectSchema.JSON_KEY_NAME) final String name,
-        @JsonProperty(JSON_KEY_REFERENCE) final URL reference,
-        @JsonProperty(JSON_KEY_DEFINITION) final Schema subSchema)
-	    throws ConcordiaException {
-
-	    super(doc, optional, name);
-
-	    if((reference == null) && (subSchema == null)) {
-            throw new ConcordiaException("The reference URL is null.");
-	    }
-
-	    this.reference = reference;
-
-	    if(reference == null) {
-	        this.subSchema = subSchema;
-	    }
-	    else {
-            try {
-                InputStream inputStream = reference.openStream();
-                this.subSchema =
-                    new Concordia(
-                        inputStream,
-                        ValidationController.BASIC_CONTROLLER)
-                        .getSchema();
-                inputStream.close();
-            }
-            catch(IOException e) {
-                throw new ConcordiaException(
-                    "There was an error reading the schema.",
-                    e);
-            }
-	    }
-	}
+    }
 
 	/**
 	 * Returns the sub-schema for this referenced schema.
@@ -280,6 +268,15 @@ public class ReferenceSchema extends Schema {
 	@Override
 	public List<Schema> getSubSchemas() {
 		return subSchema.getSubSchemas();
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see name.jenkins.paul.john.concordia.schema.Schema#getBuilder()
+	 */
+	@Override
+    public Schema.Builder getBuilder() {
+	    return new ReferenceSchema.Builder(this);
 	}
 
 	/* (non-Javadoc)

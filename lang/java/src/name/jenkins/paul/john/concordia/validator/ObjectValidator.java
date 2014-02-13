@@ -29,7 +29,8 @@ public class ObjectValidator
 	@Override
 	public void validate(
 		final ObjectSchema schema,
-		final ValidationController controller) throws ConcordiaException {
+		final ValidationController controller)
+	    throws ConcordiaException {
 
 		// First, ensure that a list of fields was given.
 		List<Schema> fields = schema.getFields();
