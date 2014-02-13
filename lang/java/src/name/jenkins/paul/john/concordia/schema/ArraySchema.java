@@ -157,11 +157,13 @@ public class ArraySchema extends Schema {
 	 * The {@link Schema} for this array if it is a constant-type array.
 	 */
 	@JsonProperty(JSON_KEY_CONST_TYPE)
+    @JsonInclude(Include.NON_NULL)
 	private final Schema constType;
 	/**
 	 * The {@link Schema}s for this array if it is a constant-type array.
 	 */
 	@JsonProperty(JSON_KEY_CONST_LENGTH)
+    @JsonInclude(Include.NON_NULL)
 	private final List<Schema> constLength;
 
 	/**

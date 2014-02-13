@@ -226,20 +226,20 @@ public abstract class Schema implements Serializable {
 	 * The {@link #JSON_KEY_DOC} field with a default value of null.
 	 */
 	@JsonProperty(JSON_KEY_DOC)
-	@JsonInclude(Include.NON_DEFAULT)
+	@JsonInclude(Include.NON_NULL)
 	private final String doc;
 	/**
 	 * The {@link #JSON_KEY_OPTIONAL} field with a default value of false.
 	 */
 	@JsonProperty(JSON_KEY_OPTIONAL)
-	@JsonInclude(Include.NON_DEFAULT)
+	@JsonInclude(Include.NON_NULL)
 	private final boolean optional;
 
 	/**
 	 * The name for this field if it is part of an object.
 	 */
 	@JsonProperty(ObjectSchema.JSON_KEY_NAME)
-	@JsonInclude(Include.NON_DEFAULT)
+	@JsonInclude(Include.NON_NULL)
 	private final String name;
 
 	/**
