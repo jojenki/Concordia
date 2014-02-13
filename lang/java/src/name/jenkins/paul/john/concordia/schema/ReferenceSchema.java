@@ -93,12 +93,11 @@ public class ReferenceSchema extends Schema {
 	 *         The reference URL was invalid or the schema it referenced was
 	 *         invalid.
 	 */
-	@JsonCreator
 	public ReferenceSchema(
-		@JsonProperty(JSON_KEY_DOC) final String doc,
-		@JsonProperty(JSON_KEY_OPTIONAL) final boolean optional,
-		@JsonProperty(ObjectSchema.JSON_KEY_NAME) final String name,
-		@JsonProperty(JSON_KEY_REFERENCE) final URL reference)
+		final String doc,
+		final boolean optional,
+		final String name,
+		final URL reference)
 		throws ConcordiaException {
 
 		super(doc, optional, name);
@@ -125,7 +124,7 @@ public class ReferenceSchema extends Schema {
 	}
 
     /**
-     * Creates a new referenced schema from the given sub-schema.
+     * Creates a new referenced schema from the sub-schema.
      *
      * @param doc
      *        Optional documentation for this Schema.
@@ -153,11 +152,72 @@ public class ReferenceSchema extends Schema {
 	    super(doc, optional, name);
 
 	    if(subSchema == null) {
-	        throw new ConcordiaException("The sub-schema is null.");
+            throw new ConcordiaException("The reference URL is null.");
 	    }
 
 	    reference = null;
 	    this.subSchema = subSchema;
+	}
+
+	/**
+	 * Recreates an existing ReferenceSchema.
+     *
+     * @param doc
+     *        Optional documentation for this Schema.
+     *
+     * @param optional
+     *        Whether or not data for this Schema is optional.
+     *
+     * @param name
+     *        The name of this field, which is needed when constructing an
+     *        {@link ObjectSchema}.
+     *
+     * @param reference
+     *        The reference to the external schema.
+     *
+     * @param subSchema
+     *        The schema that backs that backs this schema.
+     *
+     * @throws ConcordiaException
+     *         The reference URL was invalid (or the schema it referenced was
+     *         invalid) and the sub-schema was null.
+	 */
+	@JsonCreator
+	protected ReferenceSchema(
+        @JsonProperty(JSON_KEY_DOC) final String doc,
+        @JsonProperty(JSON_KEY_OPTIONAL) final boolean optional,
+        @JsonProperty(ObjectSchema.JSON_KEY_NAME) final String name,
+        @JsonProperty(JSON_KEY_REFERENCE) final URL reference,
+        @JsonProperty(JSON_KEY_DEFINITION) final Schema subSchema)
+	    throws ConcordiaException {
+
+	    super(doc, optional, name);
+
+	    if((reference == null) && (subSchema == null)) {
+            throw new ConcordiaException("The reference URL is null.");
+	    }
+
+	    this.reference = reference;
+
+	    if(reference == null) {
+	        this.subSchema = subSchema;
+	    }
+	    else {
+            try {
+                InputStream inputStream = reference.openStream();
+                this.subSchema =
+                    new Concordia(
+                        inputStream,
+                        ValidationController.BASIC_CONTROLLER)
+                        .getSchema();
+                inputStream.close();
+            }
+            catch(IOException e) {
+                throw new ConcordiaException(
+                    "There was an error reading the schema.",
+                    e);
+            }
+	    }
 	}
 
 	/**

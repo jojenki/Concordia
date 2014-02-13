@@ -2,7 +2,7 @@
 <!-- The build file for the JavaScript version of Concordia. -->
 <project name="ConcoridaJS" basedir="." default="dist-min">
     <!-- Define the properties. -->
-    <property name="version" value="1.2.1"/>
+    <property name="version" value="1.2.2"/>
 	
 	<!-- Rhino unit tester for JavaScript. -->
     <scriptdef
