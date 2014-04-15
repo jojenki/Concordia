@@ -342,9 +342,18 @@ public abstract class Schema implements Serializable {
      */
 	public abstract Schema.Builder getBuilder();
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
+    /**
+     * Returns String representation of this object.
+     * @return The schema name.
+     */
+    @Override
+    public String toString() {
+        return name;
+    }
+
+    /* (non-Javadoc)
+         * @see java.lang.Object#hashCode()
+         */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
